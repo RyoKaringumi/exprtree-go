@@ -88,6 +88,14 @@ type Variable struct {
 	Name string
 }
 
+func (c *Constant) Children() []Expression {
+	return []Expression{}
+}
+
+func (v *Variable) Children() []Expression {
+	return []Expression{}
+}
+
 func (e *AddExpression) Eval() (ExpressValue, bool) {
 	leftVal, leftOk := e.Left.Eval()
 	rightVal, rightOk := e.Right.Eval()
@@ -156,12 +164,4 @@ func (e *DivideExpression) Eval() (ExpressValue, bool) {
 
 func (c *Constant) Eval() (ExpressValue, bool) {
 	return &c.Value, true
-}
-
-func (c *Constant) Children() []Expression {
-	return []Expression{}
-}
-
-func (v *Variable) Children() []Expression {
-	return []Expression{}
 }
