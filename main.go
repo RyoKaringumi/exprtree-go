@@ -78,4 +78,49 @@ func main() {
 			}
 		}
 	}
+
+	// Example 4: Converting Expression tree to LaTeX string
+	println("\nExample 4: Expression tree to LaTeX string")
+
+	// Manual expression: (2 + 3) * 4
+	manualExpr := expr.NewMultiplyExpression(
+		expr.NewAddExpression(
+			&expr.Constant{Value: expr.NumberValue{Value: 2}},
+			&expr.Constant{Value: expr.NumberValue{Value: 3}},
+		),
+		&expr.Constant{Value: expr.NumberValue{Value: 4}},
+	)
+
+	latexStr, err := latex.ExpressionToLatex(manualExpr)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	} else {
+		fmt.Printf("Expression tree → LaTeX: %s\n", latexStr) // Should print: (2 + 3) * 4
+	}
+
+	// Round-trip test: Parse → Evaluate → Convert back to string
+	println("\nExample 5: Round-trip conversion")
+	originalStr := "10 - (3 - 2)"
+	fmt.Printf("Original: %s\n", originalStr)
+
+	parsedExpr, err := latex.ParseLatex(originalStr)
+	if err != nil {
+		fmt.Printf("Parse error: %v\n", err)
+	} else {
+		// Evaluate
+		result7, ok := parsedExpr.Eval()
+		if ok {
+			if numResult, ok := result7.(*expr.NumberValue); ok {
+				fmt.Printf("Evaluated: %.2f\n", numResult.Value)
+			}
+		}
+
+		// Convert back to string
+		reconstructed, err := latex.ExpressionToLatex(parsedExpr)
+		if err != nil {
+			fmt.Printf("Export error: %v\n", err)
+		} else {
+			fmt.Printf("Reconstructed: %s\n", reconstructed)
+		}
+	}
 }
