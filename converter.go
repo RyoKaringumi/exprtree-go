@@ -1,0 +1,79 @@
+package main
+
+import "fmt"
+
+// Converter converts LaTeX AST to Expression tree
+type Converter struct {
+	errors []string
+}
+
+// NewConverter creates a new Converter instance
+func NewConverter() *Converter {
+	return &Converter{
+		errors: []string{},
+	}
+}
+
+// Convert converts a LatexNode to an Expression
+func (c *Converter) Convert(node LatexNode) (Expression, error) {
+	if node == nil {
+		return nil, fmt.Errorf("cannot convert nil node")
+	}
+
+	switch n := node.(type) {
+	case *NumberNode:
+		return c.convertNumber(n), nil
+	case *BinaryOpNode:
+		return c.convertBinaryOp(n)
+	case *GroupNode:
+		return c.convertGroup(n)
+	default:
+		return nil, fmt.Errorf("unknown node type: %T", node)
+	}
+}
+
+// convertNumber converts a NumberNode to a Constant
+func (c *Converter) convertNumber(node *NumberNode) Expression {
+	return &Constant{
+		Value: NumberValue{Value: node.Value},
+	}
+}
+
+// convertBinaryOp converts a BinaryOpNode to the appropriate Expression
+func (c *Converter) convertBinaryOp(node *BinaryOpNode) (Expression, error) {
+	// Convert left and right children
+	left, err := c.Convert(node.Left)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert left operand: %w", err)
+	}
+
+	right, err := c.Convert(node.Right)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert right operand: %w", err)
+	}
+
+	// Create appropriate Expression based on operator
+	switch node.Operator.Type {
+	case PLUS:
+		return NewAddExpression(left, right), nil
+	case MINUS:
+		return NewSubtractExpression(left, right), nil
+	case MULTIPLY:
+		return NewMultiplyExpression(left, right), nil
+	case DIVIDE:
+		return NewDivideExpression(left, right), nil
+	default:
+		return nil, fmt.Errorf("unknown operator: %v", node.Operator.Type)
+	}
+}
+
+// convertGroup converts a GroupNode by converting its inner expression
+func (c *Converter) convertGroup(node *GroupNode) (Expression, error) {
+	// Groups are just for parsing precedence, we don't need them in the Expression tree
+	return c.Convert(node.Inner)
+}
+
+// Errors returns the list of conversion errors
+func (c *Converter) Errors() []string {
+	return c.errors
+}
