@@ -501,67 +501,67 @@ func TestIsPolynomialTerm(t *testing.T) {
 	}
 }
 
-// // TestMapTerms tests the MapTerms function that applies a transformation to each term
-// func TestMapTerms(t *testing.T) {
-// 	// Double all constants in each term
-// 	doubleConstants := func(expr Expression) Expression {
-// 		if c, ok := expr.(*Constant); ok {
-// 			return NewConstant(c.Value.Value * 2)
-// 		}
-// 		return expr
-// 	}
+// TestMapTerms tests the MapTerms function that applies a transformation to each term
+func TestMapTerms(t *testing.T) {
+	// Double all constants in each term
+	doubleConstants := func(expr Expression) Expression {
+		if c, ok := expr.(*Constant); ok {
+			return NewConstant(c.Value.Value * 2)
+		}
+		return expr
+	}
 
-// 	tests := []struct {
-// 		name     string
-// 		expr     Expression
-// 		fn       func(Expression) Expression
-// 		expected Expression
-// 	}{
-// 		{
-// 			name:     "double single constant",
-// 			expr:     NewConstant(5),
-// 			fn:       doubleConstants,
-// 			expected: NewConstant(10),
-// 		},
-// 		{
-// 			name: "double constants in addition",
-// 			expr: NewAddExpression(
-// 				NewConstant(2),
-// 				NewConstant(3),
-// 			),
-// 			fn: doubleConstants,
-// 			expected: NewAddExpression(
-// 				NewConstant(4),
-// 				NewConstant(6),
-// 			),
-// 		},
-// 		{
-// 			name: "double constants in nested addition",
-// 			expr: NewAddExpression(
-// 				NewAddExpression(
-// 					NewConstant(1),
-// 					NewConstant(2),
-// 				),
-// 				NewConstant(3),
-// 			),
-// 			fn: doubleConstants,
-// 			expected: NewAddExpression(
-// 				NewAddExpression(
-// 					NewConstant(2),
-// 					NewConstant(4),
-// 				),
-// 				NewConstant(6),
-// 			),
-// 		},
-// 	}
+	tests := []struct {
+		name     string
+		expr     Expression
+		fn       func(Expression) Expression
+		expected Expression
+	}{
+		{
+			name:     "double single constant",
+			expr:     NewConstant(5),
+			fn:       doubleConstants,
+			expected: NewConstant(10),
+		},
+		{
+			name: "double constants in addition",
+			expr: NewAddExpression(
+				NewConstant(2),
+				NewConstant(3),
+			),
+			fn: doubleConstants,
+			expected: NewAddExpression(
+				NewConstant(4),
+				NewConstant(6),
+			),
+		},
+		{
+			name: "double constants in nested addition",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewConstant(1),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			fn: doubleConstants,
+			expected: NewAddExpression(
+				NewAddExpression(
+					NewConstant(2),
+					NewConstant(4),
+				),
+				NewConstant(6),
+			),
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			result := MapTerms(tt.expr, tt.fn)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := MapTerms(tt.expr, tt.fn)
 
-// 			if !expressionsEqual(result, tt.expected) {
-// 				t.Errorf("MapTerms() result mismatch")
-// 			}
-// 		})
-// 	}
-// }
+			if !expressionsEqual(result, tt.expected) {
+				t.Errorf("MapTerms() result mismatch")
+			}
+		})
+	}
+}

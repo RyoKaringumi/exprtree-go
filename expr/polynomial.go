@@ -47,3 +47,11 @@ func IsPolynomialTerm(node Expression) bool {
 		return false
 	}
 }
+
+func MapTerms(node Expression, fn func(Expression) Expression) Expression {
+	terms := SplitToTerms(node)
+	for i, term := range terms {
+		terms[i] = fn(term)
+	}
+	return CombineTerms(terms)
+}
