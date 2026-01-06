@@ -142,3 +142,150 @@ func TestExpressionWithVariable(t *testing.T) {
 		t.Errorf("Expected evaluation to fail due to variable")
 	}
 }
+
+func TestPatternMatch(t *testing.T) {
+	// Test case from requirement:
+	// (x+3)(1+z) matches pattern x(y+z)
+	// Expected bindings: x -> (x+3), y -> 1, z -> z
+
+	// Build pattern: x(y+z)
+	pattern := NewMultiplyExpression(
+		NewVariable("x"),
+		NewAddExpression(
+			NewVariable("y"),
+			NewVariable("z"),
+		),
+	)
+
+	// Build expression: (x+3)(1+z)
+	expr := NewMultiplyExpression(
+		NewAddExpression(
+			NewVariable("x"),
+			NewConstant(3),
+		),
+		NewAddExpression(
+			NewConstant(1),
+			NewVariable("z"),
+		),
+	)
+
+	bindings, ok := PatternMatch(pattern, expr)
+	if !ok {
+		t.Fatalf("Expected pattern match to succeed")
+	}
+
+	// Check binding for x: should be (x+3)
+	xBinding, exists := bindings["x"]
+	if !exists {
+		t.Errorf("Expected binding for variable 'x'")
+	}
+	expectedX := NewAddExpression(
+		NewVariable("x"),
+		NewConstant(3),
+	)
+	if !expressionsEqual(xBinding, expectedX) {
+		t.Errorf("Binding for 'x' does not match expected expression")
+	}
+
+	// Check binding for y: should be 1
+	yBinding, exists := bindings["y"]
+	if !exists {
+		t.Errorf("Expected binding for variable 'y'")
+	}
+	expectedY := NewConstant(1)
+	if !expressionsEqual(yBinding, expectedY) {
+		t.Errorf("Binding for 'y' does not match expected expression")
+	}
+
+	// Check binding for z: should be z
+	zBinding, exists := bindings["z"]
+	if !exists {
+		t.Errorf("Expected binding for variable 'z'")
+	}
+	expectedZ := NewVariable("z")
+	if !expressionsEqual(zBinding, expectedZ) {
+		t.Errorf("Binding for 'z' does not match expected expression")
+	}
+}
+
+func TestPatternMatchWithRepeatedVariable(t *testing.T) {
+	// Test that repeated variables must match the same expression
+	// Pattern: x + x
+	pattern := NewAddExpression(
+		NewVariable("x"),
+		NewVariable("x"),
+	)
+
+	// Expression: 2 + 2 (should match)
+	expr1 := NewAddExpression(
+		NewConstant(2),
+		NewConstant(2),
+	)
+	bindings1, ok1 := PatternMatch(pattern, expr1)
+	if !ok1 {
+		t.Errorf("Expected pattern match to succeed for 2 + 2")
+	}
+	if xVal, exists := bindings1["x"]; !exists || !expressionsEqual(xVal, NewConstant(2)) {
+		t.Errorf("Expected x to bind to 2")
+	}
+
+	// Expression: 2 + 3 (should NOT match)
+	expr2 := NewAddExpression(
+		NewConstant(2),
+		NewConstant(3),
+	)
+	_, ok2 := PatternMatch(pattern, expr2)
+	if ok2 {
+		t.Errorf("Expected pattern match to fail for 2 + 3 (x must be consistent)")
+	}
+}
+
+func TestPatternMatchWithConstant(t *testing.T) {
+	// Pattern: x + 5
+	pattern := NewAddExpression(
+		NewVariable("x"),
+		NewConstant(5),
+	)
+
+	// Expression: 3 + 5 (should match)
+	expr1 := NewAddExpression(
+		NewConstant(3),
+		NewConstant(5),
+	)
+	bindings1, ok1 := PatternMatch(pattern, expr1)
+	if !ok1 {
+		t.Errorf("Expected pattern match to succeed")
+	}
+	if xVal, exists := bindings1["x"]; !exists || !expressionsEqual(xVal, NewConstant(3)) {
+		t.Errorf("Expected x to bind to 3")
+	}
+
+	// Expression: 3 + 4 (should NOT match, constant differs)
+	expr2 := NewAddExpression(
+		NewConstant(3),
+		NewConstant(4),
+	)
+	_, ok2 := PatternMatch(pattern, expr2)
+	if ok2 {
+		t.Errorf("Expected pattern match to fail (constant mismatch)")
+	}
+}
+
+func TestPatternMatchTypeMismatch(t *testing.T) {
+	// Pattern: x + y
+	pattern := NewAddExpression(
+		NewVariable("x"),
+		NewVariable("y"),
+	)
+
+	// Expression: 2 * 3 (different operator, should NOT match)
+	expr := NewMultiplyExpression(
+		NewConstant(2),
+		NewConstant(3),
+	)
+
+	_, ok := PatternMatch(pattern, expr)
+	if ok {
+		t.Errorf("Expected pattern match to fail (operator type mismatch)")
+	}
+}

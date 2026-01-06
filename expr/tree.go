@@ -83,9 +83,21 @@ type Constant struct {
 	Value NumberValue
 }
 
+func NewConstant(value float64) *Constant {
+	return &Constant{
+		Value: NumberValue{Value: value},
+	}
+}
+
 type Variable struct {
 	Expression
 	Name string
+}
+
+func NewVariable(name string) *Variable {
+	return &Variable{
+		Name: name,
+	}
 }
 
 func (c *Constant) Children() []Expression {
@@ -169,4 +181,105 @@ func (c *Constant) Eval() (ExpressValue, bool) {
 func (v *Variable) Eval() (ExpressValue, bool) {
 	// Variables cannot be evaluated without a value assignment context
 	return nil, false
+}
+
+// PatternMatch attempts to match an expression against a pattern template.
+// Variables in the pattern act as wildcards that can match any sub-expression.
+// Returns a map of variable names to their matched expressions, and a success flag.
+//
+// Example:
+//   pattern: x(y+z)  → x matches (x+3), y matches 1, z matches z
+//   expr: (x+3)(1+z)
+func PatternMatch(pattern Expression, expr Expression) (map[string]Expression, bool) {
+	bindings := make(map[string]Expression)
+	ok := patternMatchHelper(pattern, expr, bindings)
+	return bindings, ok
+}
+
+func patternMatchHelper(pattern Expression, expr Expression, bindings map[string]Expression) bool {
+	// If pattern is a variable, treat it as a wildcard
+	if patternVar, ok := pattern.(*Variable); ok {
+		// If this variable is already bound, check if expr matches the existing binding
+		if existingExpr, exists := bindings[patternVar.Name]; exists {
+			return expressionsEqual(existingExpr, expr)
+		}
+		// Create new binding
+		bindings[patternVar.Name] = expr
+		return true
+	}
+
+	// If pattern is a constant, expr must be the same constant
+	if patternConst, ok := pattern.(*Constant); ok {
+		if exprConst, ok := expr.(*Constant); ok {
+			return patternConst.Value.Value == exprConst.Value.Value
+		}
+		return false
+	}
+
+	// For binary expressions, both must be the same type and children must match
+	switch p := pattern.(type) {
+	case *AddExpression:
+		if e, ok := expr.(*AddExpression); ok {
+			return patternMatchHelper(p.Left, e.Left, bindings) &&
+				patternMatchHelper(p.Right, e.Right, bindings)
+		}
+	case *SubtractExpression:
+		if e, ok := expr.(*SubtractExpression); ok {
+			return patternMatchHelper(p.Left, e.Left, bindings) &&
+				patternMatchHelper(p.Right, e.Right, bindings)
+		}
+	case *MultiplyExpression:
+		if e, ok := expr.(*MultiplyExpression); ok {
+			return patternMatchHelper(p.Left, e.Left, bindings) &&
+				patternMatchHelper(p.Right, e.Right, bindings)
+		}
+	case *DivideExpression:
+		if e, ok := expr.(*DivideExpression); ok {
+			return patternMatchHelper(p.Left, e.Left, bindings) &&
+				patternMatchHelper(p.Right, e.Right, bindings)
+		}
+	}
+
+	return false
+}
+
+// expressionsEqual checks if two expressions are structurally equal
+func expressionsEqual(expr1, expr2 Expression) bool {
+	// Check if both are constants
+	if c1, ok := expr1.(*Constant); ok {
+		if c2, ok := expr2.(*Constant); ok {
+			return c1.Value.Value == c2.Value.Value
+		}
+		return false
+	}
+
+	// Check if both are variables with the same name
+	if v1, ok := expr1.(*Variable); ok {
+		if v2, ok := expr2.(*Variable); ok {
+			return v1.Name == v2.Name
+		}
+		return false
+	}
+
+	// Check if both are the same type of binary expression
+	switch e1 := expr1.(type) {
+	case *AddExpression:
+		if e2, ok := expr2.(*AddExpression); ok {
+			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	case *SubtractExpression:
+		if e2, ok := expr2.(*SubtractExpression); ok {
+			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	case *MultiplyExpression:
+		if e2, ok := expr2.(*MultiplyExpression); ok {
+			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	case *DivideExpression:
+		if e2, ok := expr2.(*DivideExpression); ok {
+			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	}
+
+	return false
 }
