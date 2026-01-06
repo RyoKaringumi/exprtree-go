@@ -12,31 +12,70 @@ func (n *NumberValue) Eval() (ExpressValue, bool) {
 }
 
 type Expression interface {
+	Children() []Expression
 	Eval() (ExpressValue, bool)
 }
 
-type AddExpression struct {
+type BinaryExpression struct {
 	Expression
 	Left  Expression
 	Right Expression
+}
+
+func (b *BinaryExpression) Children() []Expression {
+	return []Expression{b.Left, b.Right}
+}
+
+type AddExpression struct {
+	BinaryExpression
+}
+
+func NewAddExpression(left, right Expression) *AddExpression {
+	return &AddExpression{
+		BinaryExpression: BinaryExpression{
+			Left:  left,
+			Right: right,
+		},
+	}
 }
 
 type SubtractExpression struct {
-	Expression
-	Left  Expression
-	Right Expression
+	BinaryExpression
+}
+
+func NewSubtractExpression(left, right Expression) *SubtractExpression {
+	return &SubtractExpression{
+		BinaryExpression: BinaryExpression{
+			Left:  left,
+			Right: right,
+		},
+	}
 }
 
 type MultiplyExpression struct {
-	Expression
-	Left  Expression
-	Right Expression
+	BinaryExpression
+}
+
+func NewMultiplyExpression(left, right Expression) *MultiplyExpression {
+	return &MultiplyExpression{
+		BinaryExpression: BinaryExpression{
+			Left:  left,
+			Right: right,
+		},
+	}
 }
 
 type DivideExpression struct {
-	Expression
-	Left  Expression
-	Right Expression
+	BinaryExpression
+}
+
+func NewDivideExpression(left, right Expression) *DivideExpression {
+	return &DivideExpression{
+		BinaryExpression: BinaryExpression{
+			Left:  left,
+			Right: right,
+		},
+	}
 }
 
 type Constant struct {
@@ -119,8 +158,10 @@ func (c *Constant) Eval() (ExpressValue, bool) {
 	return &c.Value, true
 }
 
-func (v *Variable) Eval() (ExpressValue, bool) {
-	// Variable evaluation logic would go here.
-	// For simplicity, returning nil, false.
-	return nil, false
+func (c *Constant) Children() []Expression {
+	return []Expression{}
+}
+
+func (v *Variable) Children() []Expression {
+	return []Expression{}
 }

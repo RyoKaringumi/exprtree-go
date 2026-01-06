@@ -2,13 +2,13 @@ package main
 
 func main() {
 	// Example usage:
-	expr := &AddExpression{
-		Left: &Constant{Value: NumberValue{Value: 10}},
-		Right: &MultiplyExpression{
-			Left:  &Constant{Value: NumberValue{Value: 2}},
-			Right: &Constant{Value: NumberValue{Value: 3}},
-		},
-	}
+	expr := NewAddExpression(
+		&Constant{Value: NumberValue{Value: 10}},
+		NewMultiplyExpression(
+			&Constant{Value: NumberValue{Value: 2}},
+			&Constant{Value: NumberValue{Value: 3}},
+		),
+	)
 
 	result, ok := expr.Eval()
 	if ok {

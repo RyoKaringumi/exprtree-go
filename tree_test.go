@@ -20,7 +20,7 @@ func TestConstantEval(t *testing.T) {
 func TestAddExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 3.0}}
 	right := &Constant{Value: NumberValue{Value: 4.0}}
-	add := &AddExpression{Left: left, Right: right}
+	add := NewAddExpression(left, right)
 	result, ok := add.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -37,7 +37,7 @@ func TestAddExpression(t *testing.T) {
 func TestSubtractExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 10.0}}
 	right := &Constant{Value: NumberValue{Value: 3.0}}
-	sub := &SubtractExpression{Left: left, Right: right}
+	sub := NewSubtractExpression(left, right)
 	result, ok := sub.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -54,7 +54,7 @@ func TestSubtractExpression(t *testing.T) {
 func TestMultiplyExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 6.0}}
 	right := &Constant{Value: NumberValue{Value: 7.0}}
-	mul := &MultiplyExpression{Left: left, Right: right}
+	mul := NewMultiplyExpression(left, right)
 	result, ok := mul.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -71,7 +71,7 @@ func TestMultiplyExpression(t *testing.T) {
 func TestDivideExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 15.0}}
 	right := &Constant{Value: NumberValue{Value: 3.0}}
-	div := &DivideExpression{Left: left, Right: right}
+	div := NewDivideExpression(left, right)
 	result, ok := div.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -88,9 +88,30 @@ func TestDivideExpression(t *testing.T) {
 func TestDivideByZero(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 10.0}}
 	right := &Constant{Value: NumberValue{Value: 0.0}}
-	div := &DivideExpression{Left: left, Right: right}
+	div := NewDivideExpression(left, right)
 	_, ok := div.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail due to division by zero")
+	}
+}
+
+func TestAddExpressionChildren(t *testing.T) {
+	left := &Constant{Value: NumberValue{Value: 3.0}}
+	right := &Constant{Value: NumberValue{Value: 4.0}}
+	add := NewAddExpression(left, right)
+	children := add.Children()
+	if len(children) != 2 {
+		t.Errorf("Expected 2 children, got %d", len(children))
+	}
+	if children[0] != left || children[1] != right {
+		t.Errorf("Children do not match expected left and right")
+	}
+}
+
+func TestConstantChildren(t *testing.T) {
+	constant := &Constant{Value: NumberValue{Value: 5.0}}
+	children := constant.Children()
+	if len(children) != 0 {
+		t.Errorf("Expected 0 children for Constant, got %d", len(children))
 	}
 }
