@@ -1,6 +1,9 @@
-package main
+package latex
 
-import "fmt"
+import (
+	"exprtree/expr"
+	"fmt"
+)
 
 // Converter converts LaTeX AST to Expression tree
 type Converter struct {
@@ -15,7 +18,7 @@ func NewConverter() *Converter {
 }
 
 // Convert converts a LatexNode to an Expression
-func (c *Converter) Convert(node LatexNode) (Expression, error) {
+func (c *Converter) Convert(node LatexNode) (expr.Expression, error) {
 	if node == nil {
 		return nil, fmt.Errorf("cannot convert nil node")
 	}
@@ -33,14 +36,14 @@ func (c *Converter) Convert(node LatexNode) (Expression, error) {
 }
 
 // convertNumber converts a NumberNode to a Constant
-func (c *Converter) convertNumber(node *NumberNode) Expression {
-	return &Constant{
-		Value: NumberValue{Value: node.Value},
+func (c *Converter) convertNumber(node *NumberNode) expr.Expression {
+	return &expr.Constant{
+		Value: expr.NumberValue{Value: node.Value},
 	}
 }
 
 // convertBinaryOp converts a BinaryOpNode to the appropriate Expression
-func (c *Converter) convertBinaryOp(node *BinaryOpNode) (Expression, error) {
+func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error) {
 	// Convert left and right children
 	left, err := c.Convert(node.Left)
 	if err != nil {
@@ -55,20 +58,20 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (Expression, error) {
 	// Create appropriate Expression based on operator
 	switch node.Operator.Type {
 	case PLUS:
-		return NewAddExpression(left, right), nil
+		return expr.NewAddExpression(left, right), nil
 	case MINUS:
-		return NewSubtractExpression(left, right), nil
+		return expr.NewSubtractExpression(left, right), nil
 	case MULTIPLY:
-		return NewMultiplyExpression(left, right), nil
+		return expr.NewMultiplyExpression(left, right), nil
 	case DIVIDE:
-		return NewDivideExpression(left, right), nil
+		return expr.NewDivideExpression(left, right), nil
 	default:
 		return nil, fmt.Errorf("unknown operator: %v", node.Operator.Type)
 	}
 }
 
 // convertGroup converts a GroupNode by converting its inner expression
-func (c *Converter) convertGroup(node *GroupNode) (Expression, error) {
+func (c *Converter) convertGroup(node *GroupNode) (expr.Expression, error) {
 	// Groups are just for parsing precedence, we don't need them in the Expression tree
 	return c.Convert(node.Inner)
 }

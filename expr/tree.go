@@ -1,4 +1,4 @@
-package main
+package expr
 
 type ExpressValue interface {
 }

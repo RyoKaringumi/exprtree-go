@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"exprtree/expr"
+	"exprtree/latex"
+	"testing"
+)
 
 func TestIntegration_SimpleArithmetic(t *testing.T) {
 	tests := []struct {
@@ -23,7 +27,7 @@ func TestIntegration_SimpleArithmetic(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result, err := ParseAndEval(tt.input)
+			result, err := latex.ParseAndEval(tt.input)
 			if err != nil {
 				t.Fatalf("ParseAndEval failed: %v", err)
 			}
@@ -47,7 +51,7 @@ func TestIntegration_DecimalNumbers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result, err := ParseAndEval(tt.input)
+			result, err := latex.ParseAndEval(tt.input)
 			if err != nil {
 				t.Fatalf("ParseAndEval failed: %v", err)
 			}
@@ -69,7 +73,7 @@ func TestIntegration_Errors(t *testing.T) {
 
 	for _, input := range tests {
 		t.Run(input, func(t *testing.T) {
-			_, err := ParseLatex(input)
+			_, err := latex.ParseLatex(input)
 			if err == nil {
 				t.Errorf("expected error for input: %s", input)
 			}
@@ -79,7 +83,7 @@ func TestIntegration_Errors(t *testing.T) {
 
 func TestIntegration_DivisionByZero(t *testing.T) {
 	input := "10 / 0"
-	result, err := ParseAndEval(input)
+	result, err := latex.ParseAndEval(input)
 
 	// Parsing should succeed
 	if err != nil {
@@ -98,24 +102,24 @@ func TestIntegration_DivisionByZero(t *testing.T) {
 
 func TestIntegration_ParseLatexReturnsExpression(t *testing.T) {
 	input := "2 + 3"
-	expr, err := ParseLatex(input)
+	expression, err := latex.ParseLatex(input)
 	if err != nil {
 		t.Fatalf("ParseLatex failed: %v", err)
 	}
 
 	// Verify we can traverse the expression tree
-	children := expr.Children()
+	children := expression.Children()
 	if len(children) != 2 {
 		t.Errorf("expected 2 children for AddExpression, got %d", len(children))
 	}
 
 	// Verify we can evaluate the expression
-	result, ok := expr.Eval()
+	result, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 5.0 {
 		t.Errorf("expected result 5.0, got %f", numResult.Value)
 	}
@@ -123,7 +127,7 @@ func TestIntegration_ParseLatexReturnsExpression(t *testing.T) {
 
 func TestIntegration_ComplexNesting(t *testing.T) {
 	input := "((2 + 3) * (4 - 1)) / (7 - 4)"
-	result, err := ParseAndEval(input)
+	result, err := latex.ParseAndEval(input)
 	if err != nil {
 		t.Fatalf("ParseAndEval failed: %v", err)
 	}
@@ -147,7 +151,7 @@ func TestIntegration_Whitespace(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result, err := ParseAndEval(tt.input)
+			result, err := latex.ParseAndEval(tt.input)
 			if err != nil {
 				t.Fatalf("ParseAndEval failed: %v", err)
 			}

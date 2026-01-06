@@ -1,19 +1,22 @@
-package main
+package latex
 
-import "testing"
+import (
+	"exprtree/expr"
+	"testing"
+)
 
 func TestConvert_Number(t *testing.T) {
 	node := &NumberNode{Value: 42.0}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	constant, ok := expr.(*Constant)
+	constant, ok := expression.(*expr.Constant)
 	if !ok {
-		t.Fatalf("expected Constant, got %T", expr)
+		t.Fatalf("expected Constant, got %T", expression)
 	}
 
 	if constant.Value.Value != 42.0 {
@@ -29,14 +32,14 @@ func TestConvert_Addition(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	addExpr, ok := expr.(*AddExpression)
+	addExpr, ok := expression.(*expr.AddExpression)
 	if !ok {
-		t.Fatalf("expected AddExpression, got %T", expr)
+		t.Fatalf("expected AddExpression, got %T", expression)
 	}
 
 	// Verify it evaluates correctly
@@ -45,7 +48,7 @@ func TestConvert_Addition(t *testing.T) {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 5.0 {
 		t.Errorf("expected result 5.0, got %f", numResult.Value)
 	}
@@ -59,14 +62,14 @@ func TestConvert_Subtraction(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	subExpr, ok := expr.(*SubtractExpression)
+	subExpr, ok := expression.(*expr.SubtractExpression)
 	if !ok {
-		t.Fatalf("expected SubtractExpression, got %T", expr)
+		t.Fatalf("expected SubtractExpression, got %T", expression)
 	}
 
 	// Verify it evaluates correctly
@@ -75,7 +78,7 @@ func TestConvert_Subtraction(t *testing.T) {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 7.0 {
 		t.Errorf("expected result 7.0, got %f", numResult.Value)
 	}
@@ -89,14 +92,14 @@ func TestConvert_Multiplication(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	mulExpr, ok := expr.(*MultiplyExpression)
+	mulExpr, ok := expression.(*expr.MultiplyExpression)
 	if !ok {
-		t.Fatalf("expected MultiplyExpression, got %T", expr)
+		t.Fatalf("expected MultiplyExpression, got %T", expression)
 	}
 
 	// Verify it evaluates correctly
@@ -105,7 +108,7 @@ func TestConvert_Multiplication(t *testing.T) {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 42.0 {
 		t.Errorf("expected result 42.0, got %f", numResult.Value)
 	}
@@ -119,14 +122,14 @@ func TestConvert_Division(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	divExpr, ok := expr.(*DivideExpression)
+	divExpr, ok := expression.(*expr.DivideExpression)
 	if !ok {
-		t.Fatalf("expected DivideExpression, got %T", expr)
+		t.Fatalf("expected DivideExpression, got %T", expression)
 	}
 
 	// Verify it evaluates correctly
@@ -135,7 +138,7 @@ func TestConvert_Division(t *testing.T) {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 5.0 {
 		t.Errorf("expected result 5.0, got %f", numResult.Value)
 	}
@@ -154,18 +157,18 @@ func TestConvert_Precedence(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
 	// Verify it evaluates correctly: 2 + 12 = 14
-	result, ok := expr.Eval()
+	result, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 14.0 {
 		t.Errorf("expected result 14.0, got %f", numResult.Value)
 	}
@@ -186,18 +189,18 @@ func TestConvert_Group(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
 	// Verify it evaluates correctly: 5 * 4 = 20
-	result, ok := expr.Eval()
+	result, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 20.0 {
 		t.Errorf("expected result 20.0, got %f", numResult.Value)
 	}
@@ -224,18 +227,18 @@ func TestConvert_ComplexTree(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expr, err := converter.Convert(node)
+	expression, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
 	// Verify it evaluates correctly: 3 * 7 = 21
-	result, ok := expr.Eval()
+	result, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*NumberValue)
+	numResult, ok := result.(*expr.NumberValue)
 	if !ok || numResult.Value != 21.0 {
 		t.Errorf("expected result 21.0, got %f", numResult.Value)
 	}

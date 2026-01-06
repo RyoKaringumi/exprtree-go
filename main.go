@@ -1,21 +1,25 @@
 package main
 
-import "fmt"
+import (
+	"exprtree/expr"
+	"exprtree/latex"
+	"fmt"
+)
 
 func main() {
 	// Example 1: Manual expression tree construction
 	println("Example 1: Manual expression tree construction")
-	expr := NewAddExpression(
-		&Constant{Value: NumberValue{Value: 10}},
-		NewMultiplyExpression(
-			&Constant{Value: NumberValue{Value: 2}},
-			&Constant{Value: NumberValue{Value: 3}},
+	expression := expr.NewAddExpression(
+		&expr.Constant{Value: expr.NumberValue{Value: 10}},
+		expr.NewMultiplyExpression(
+			&expr.Constant{Value: expr.NumberValue{Value: 2}},
+			&expr.Constant{Value: expr.NumberValue{Value: 3}},
 		),
 	)
 
-	result, ok := expr.Eval()
+	result, ok := expression.Eval()
 	if ok {
-		if numResult, ok := result.(*NumberValue); ok {
+		if numResult, ok := result.(*expr.NumberValue); ok {
 			println("Result:", numResult.Value) // Should print: Result: 16
 		} else {
 			println("Evaluation error")
@@ -28,7 +32,7 @@ func main() {
 	println("\nExample 2: LaTeX parser usage")
 
 	// Simple arithmetic
-	result2, err := ParseAndEval("2 + 3 * 4")
+	result2, err := latex.ParseAndEval("2 + 3 * 4")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
@@ -36,7 +40,7 @@ func main() {
 	}
 
 	// With parentheses
-	result3, err := ParseAndEval("(2 + 3) * 4")
+	result3, err := latex.ParseAndEval("(2 + 3) * 4")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
@@ -44,7 +48,7 @@ func main() {
 	}
 
 	// Decimal numbers
-	result4, err := ParseAndEval("2.5 + 1.5")
+	result4, err := latex.ParseAndEval("2.5 + 1.5")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
@@ -52,7 +56,7 @@ func main() {
 	}
 
 	// Complex expression
-	result5, err := ParseAndEval("(1 + 2) * (3 + 4)")
+	result5, err := latex.ParseAndEval("(1 + 2) * (3 + 4)")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
@@ -61,7 +65,7 @@ func main() {
 
 	// Example 3: Get expression tree for inspection
 	println("\nExample 3: Expression tree inspection")
-	expr2, err := ParseLatex("2 + 3 * 4")
+	expr2, err := latex.ParseLatex("2 + 3 * 4")
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
@@ -69,7 +73,7 @@ func main() {
 		fmt.Printf("Number of children: %d\n", len(expr2.Children()))
 		result6, ok := expr2.Eval()
 		if ok {
-			if numResult, ok := result6.(*NumberValue); ok {
+			if numResult, ok := result6.(*expr.NumberValue); ok {
 				fmt.Printf("Evaluation result: %.2f\n", numResult.Value)
 			}
 		}

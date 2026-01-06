@@ -1,6 +1,7 @@
-package main
+package latex
 
 import (
+	"exprtree/expr"
 	"fmt"
 	"strings"
 )
@@ -191,7 +192,7 @@ func (p *Parser) Errors() []string {
 }
 
 // ParseLatex parses a LaTeX string and returns an Expression tree
-func ParseLatex(input string) (Expression, error) {
+func ParseLatex(input string) (expr.Expression, error) {
 	lexer := NewLexer(input)
 	parser := NewParser(lexer)
 	ast, err := parser.Parse()
@@ -200,27 +201,27 @@ func ParseLatex(input string) (Expression, error) {
 	}
 
 	converter := NewConverter()
-	expr, err := converter.Convert(ast)
+	expression, err := converter.Convert(ast)
 	if err != nil {
 		return nil, fmt.Errorf("conversion error: %w", err)
 	}
 
-	return expr, nil
+	return expression, nil
 }
 
 // ParseAndEval parses a LaTeX string and evaluates it, returning the result
-func ParseAndEval(input string) (*NumberValue, error) {
-	expr, err := ParseLatex(input)
+func ParseAndEval(input string) (*expr.NumberValue, error) {
+	expression, err := ParseLatex(input)
 	if err != nil {
 		return nil, err
 	}
 
-	result, ok := expr.Eval()
+	result, ok := expression.Eval()
 	if !ok {
 		return nil, fmt.Errorf("evaluation failed")
 	}
 
-	num, ok := result.(*NumberValue)
+	num, ok := result.(*expr.NumberValue)
 	if !ok {
 		return nil, fmt.Errorf("result is not a number")
 	}

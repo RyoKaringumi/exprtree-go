@@ -63,29 +63,42 @@ Expression (インターフェース)
 
 ## ファイル構成
 
-### コアライブラリ
-- `tree.go`: すべての式型と評価ロジック
-- `tree_test.go`: 各演算子と評価メカニズムのユニットテスト
-- `main.go`: ライブラリの使用例
+```
+exprtree-go/
+├── main.go                    # メインプログラム（使用例）
+├── integration_test.go        # 統合テスト
+├── go.mod                     # Goモジュール定義
+├── CLAUDE.md                  # このファイル
+├── expr/                      # Expression treeパッケージ
+│   ├── tree.go               # すべての式型と評価ロジック
+│   └── tree_test.go          # Expressionのユニットテスト
+└── latex/                     # LaTeXパーサーパッケージ
+    ├── lexer.go              # 字句解析器
+    ├── lexer_test.go         # Lexerのユニットテスト
+    ├── parser.go             # 構文解析器（Pratt Parsing）
+    ├── parser_test.go        # Parserのユニットテスト
+    ├── converter.go          # LaTeX AST → Expression tree変換
+    └── converter_test.go     # Converterのユニットテスト
+```
 
-### LaTeXパーサー
-- `lexer.go`: LaTeX文字列をトークンに分割する字句解析器
-- `lexer_test.go`: Lexerのユニットテスト
-- `parser.go`: トークンからLaTeX ASTを構築する構文解析器（Pratt Parsing）
-- `parser_test.go`: Parserのユニットテスト
-- `converter.go`: LaTeX ASTを既存のExpression treeに変換
-- `converter_test.go`: Converterのユニットテスト
-- `integration_test.go`: エンドツーエンドの統合テスト
+### パッケージ構成
+
+- **exprtree (ルート)**: メインパッケージ
+- **expr**: Expression tree関連の型と評価ロジック
+- **latex**: LaTeX文字列のパース機能
 
 ## LaTeXパーサーの使用方法
 
 ### 基本的な使い方
 
 ```go
-import "exprtree"
+import (
+    "exprtree/expr"
+    "exprtree/latex"
+)
 
 // 数式文字列をパースして評価
-result, err := ParseAndEval("2 + 3 * 4")
+result, err := latex.ParseAndEval("2 + 3 * 4")
 if err != nil {
     log.Fatal(err)
 }
@@ -95,20 +108,25 @@ fmt.Printf("Result: %.2f\n", result.Value) // Result: 14.00
 ### Expression treeを取得
 
 ```go
+import (
+    "exprtree/expr"
+    "exprtree/latex"
+)
+
 // 数式文字列からExpression treeを構築
-expr, err := ParseLatex("(2 + 3) * 4")
+expression, err := latex.ParseLatex("(2 + 3) * 4")
 if err != nil {
     log.Fatal(err)
 }
 
 // ツリーを走査
-children := expr.Children()
+children := expression.Children()
 fmt.Printf("Number of children: %d\n", len(children))
 
 // 評価
-result, ok := expr.Eval()
+result, ok := expression.Eval()
 if ok {
-    if num, ok := result.(*NumberValue); ok {
+    if num, ok := result.(*expr.NumberValue); ok {
         fmt.Printf("Result: %.2f\n", num.Value)
     }
 }
