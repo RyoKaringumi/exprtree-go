@@ -283,3 +283,53 @@ func expressionsEqual(expr1, expr2 Expression) bool {
 
 	return false
 }
+
+// Substitute replaces variables in an expression with their bound expressions.
+// This is the inverse operation of PatternMatch.
+//
+// Example:
+//   expr: x(y+z)
+//   bindings: {x: (x+3), y: 1, z: z}
+//   result: (x+3)(1+z)
+func Substitute(expr Expression, bindings map[string]Expression) Expression {
+	// If expr is a variable, replace it if a binding exists
+	if v, ok := expr.(*Variable); ok {
+		if replacement, exists := bindings[v.Name]; exists {
+			return replacement
+		}
+		// No binding, return the variable as-is
+		return v
+	}
+
+	// If expr is a constant, return it as-is
+	if c, ok := expr.(*Constant); ok {
+		return c
+	}
+
+	// For binary expressions, recursively substitute in children
+	switch e := expr.(type) {
+	case *AddExpression:
+		return NewAddExpression(
+			Substitute(e.Left, bindings),
+			Substitute(e.Right, bindings),
+		)
+	case *SubtractExpression:
+		return NewSubtractExpression(
+			Substitute(e.Left, bindings),
+			Substitute(e.Right, bindings),
+		)
+	case *MultiplyExpression:
+		return NewMultiplyExpression(
+			Substitute(e.Left, bindings),
+			Substitute(e.Right, bindings),
+		)
+	case *DivideExpression:
+		return NewDivideExpression(
+			Substitute(e.Left, bindings),
+			Substitute(e.Right, bindings),
+		)
+	}
+
+	// Unknown expression type, return as-is
+	return expr
+}

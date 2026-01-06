@@ -289,3 +289,175 @@ func TestPatternMatchTypeMismatch(t *testing.T) {
 		t.Errorf("Expected pattern match to fail (operator type mismatch)")
 	}
 }
+
+func TestSubstitute(t *testing.T) {
+	// Test case from requirement (inverse of PatternMatch):
+	// Starting with: x(y+z)
+	// Bindings: x -> (x+3), y -> 1, z -> z
+	// Expected result: (x+3)(1+z)
+
+	// Build expression: x(y+z)
+	expr := NewMultiplyExpression(
+		NewVariable("x"),
+		NewAddExpression(
+			NewVariable("y"),
+			NewVariable("z"),
+		),
+	)
+
+	// Build bindings
+	bindings := map[string]Expression{
+		"x": NewAddExpression(
+			NewVariable("x"),
+			NewConstant(3),
+		),
+		"y": NewConstant(1),
+		"z": NewVariable("z"),
+	}
+
+	// Perform substitution
+	result := Substitute(expr, bindings)
+
+	// Expected result: (x+3)(1+z)
+	expected := NewMultiplyExpression(
+		NewAddExpression(
+			NewVariable("x"),
+			NewConstant(3),
+		),
+		NewAddExpression(
+			NewConstant(1),
+			NewVariable("z"),
+		),
+	)
+
+	if !expressionsEqual(result, expected) {
+		t.Errorf("Substitution result does not match expected expression")
+	}
+}
+
+func TestSubstitutePartial(t *testing.T) {
+	// Test partial substitution where not all variables are bound
+	// Expression: x + y + z
+	// Bindings: x -> 1, z -> 3 (y is not bound)
+	// Expected: 1 + y + 3
+
+	expr := NewAddExpression(
+		NewAddExpression(
+			NewVariable("x"),
+			NewVariable("y"),
+		),
+		NewVariable("z"),
+	)
+
+	bindings := map[string]Expression{
+		"x": NewConstant(1),
+		"z": NewConstant(3),
+	}
+
+	result := Substitute(expr, bindings)
+
+	expected := NewAddExpression(
+		NewAddExpression(
+			NewConstant(1),
+			NewVariable("y"),
+		),
+		NewConstant(3),
+	)
+
+	if !expressionsEqual(result, expected) {
+		t.Errorf("Partial substitution result does not match expected expression")
+	}
+}
+
+func TestSubstituteNoBindings(t *testing.T) {
+	// Test substitution with empty bindings
+	// Expression: x + y
+	// Bindings: {} (empty)
+	// Expected: x + y (unchanged)
+
+	expr := NewAddExpression(
+		NewVariable("x"),
+		NewVariable("y"),
+	)
+
+	bindings := map[string]Expression{}
+
+	result := Substitute(expr, bindings)
+
+	if !expressionsEqual(result, expr) {
+		t.Errorf("Expression should remain unchanged with empty bindings")
+	}
+}
+
+func TestSubstituteWithConstants(t *testing.T) {
+	// Test that constants are preserved during substitution
+	// Expression: 2 + x * 3
+	// Bindings: x -> 5
+	// Expected: 2 + 5 * 3
+
+	expr := NewAddExpression(
+		NewConstant(2),
+		NewMultiplyExpression(
+			NewVariable("x"),
+			NewConstant(3),
+		),
+	)
+
+	bindings := map[string]Expression{
+		"x": NewConstant(5),
+	}
+
+	result := Substitute(expr, bindings)
+
+	expected := NewAddExpression(
+		NewConstant(2),
+		NewMultiplyExpression(
+			NewConstant(5),
+			NewConstant(3),
+		),
+	)
+
+	if !expressionsEqual(result, expected) {
+		t.Errorf("Substitution with constants does not match expected expression")
+	}
+}
+
+func TestPatternMatchAndSubstituteRoundTrip(t *testing.T) {
+	// Test that PatternMatch and Substitute are inverse operations
+	// 1. Match (x+3)(1+z) against pattern x(y+z) to get bindings
+	// 2. Substitute the bindings back into the pattern
+	// 3. Should get back the original expression
+
+	pattern := NewMultiplyExpression(
+		NewVariable("x"),
+		NewAddExpression(
+			NewVariable("y"),
+			NewVariable("z"),
+		),
+	)
+
+	original := NewMultiplyExpression(
+		NewAddExpression(
+			NewVariable("x"),
+			NewConstant(3),
+		),
+		NewAddExpression(
+			NewConstant(1),
+			NewVariable("z"),
+		),
+	)
+
+	// Step 1: Pattern match
+	bindings, ok := PatternMatch(pattern, original)
+	if !ok {
+		t.Fatalf("Pattern match failed")
+	}
+
+	// Step 2: Substitute back
+	result := Substitute(pattern, bindings)
+
+	// Step 3: Compare
+	if !expressionsEqual(result, original) {
+		t.Errorf("Round-trip failed: result does not match original expression")
+	}
+}
