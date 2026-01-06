@@ -417,89 +417,89 @@ func TestCountTerms(t *testing.T) {
 	}
 }
 
-// // TestIsPolynomialTerm tests whether an expression is a valid polynomial term (no addition)
-// func TestIsPolynomialTerm(t *testing.T) {
-// 	tests := []struct {
-// 		name     string
-// 		expr     Expression
-// 		expected bool
-// 	}{
-// 		{
-// 			name:     "constant",
-// 			expr:     NewConstant(5),
-// 			expected: true,
-// 		},
-// 		{
-// 			name:     "variable",
-// 			expr:     NewVariable("x"),
-// 			expected: true,
-// 		},
-// 		{
-// 			name: "multiplication",
-// 			expr: NewMultiplyExpression(
-// 				NewConstant(2),
-// 				NewVariable("x"),
-// 			),
-// 			expected: true,
-// 		},
-// 		{
-// 			name: "division",
-// 			expr: NewDivideExpression(
-// 				NewConstant(10),
-// 				NewConstant(2),
-// 			),
-// 			expected: true,
-// 		},
-// 		{
-// 			name: "subtraction",
-// 			expr: NewSubtractExpression(
-// 				NewConstant(5),
-// 				NewConstant(3),
-// 			),
-// 			expected: true,
-// 		},
-// 		{
-// 			name: "addition (not a term)",
-// 			expr: NewAddExpression(
-// 				NewConstant(2),
-// 				NewConstant(3),
-// 			),
-// 			expected: false,
-// 		},
-// 		{
-// 			name: "nested multiplication",
-// 			expr: NewMultiplyExpression(
-// 				NewMultiplyExpression(
-// 					NewConstant(2),
-// 					NewVariable("x"),
-// 				),
-// 				NewVariable("y"),
-// 			),
-// 			expected: true,
-// 		},
-// 		{
-// 			name: "multiplication containing addition (not a term)",
-// 			expr: NewMultiplyExpression(
-// 				NewAddExpression(
-// 					NewConstant(1),
-// 					NewConstant(2),
-// 				),
-// 				NewConstant(3),
-// 			),
-// 			expected: false,
-// 		},
-// 	}
+// TestIsPolynomialTerm tests whether an expression is a valid polynomial term (no addition)
+func TestIsPolynomialTerm(t *testing.T) {
+	tests := []struct {
+		name     string
+		expr     Expression
+		expected bool
+	}{
+		{
+			name:     "constant",
+			expr:     NewConstant(5),
+			expected: true,
+		},
+		{
+			name:     "variable",
+			expr:     NewVariable("x"),
+			expected: true,
+		},
+		{
+			name: "multiplication",
+			expr: NewMultiplyExpression(
+				NewConstant(2),
+				NewVariable("x"),
+			),
+			expected: true,
+		},
+		{
+			name: "division",
+			expr: NewDivideExpression(
+				NewConstant(10),
+				NewConstant(2),
+			),
+			expected: true,
+		},
+		{
+			name: "subtraction",
+			expr: NewSubtractExpression(
+				NewConstant(5),
+				NewConstant(3),
+			),
+			expected: false,
+		},
+		{
+			name: "addition (not a term)",
+			expr: NewAddExpression(
+				NewConstant(2),
+				NewConstant(3),
+			),
+			expected: false,
+		},
+		{
+			name: "nested multiplication",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewConstant(2),
+					NewVariable("x"),
+				),
+				NewVariable("y"),
+			),
+			expected: true,
+		},
+		{
+			name: "multiplication containing addition (not a term)",
+			expr: NewMultiplyExpression(
+				NewAddExpression(
+					NewConstant(1),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected: false,
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			result := IsPolynomialTerm(tt.expr)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsPolynomialTerm(tt.expr)
 
-// 			if result != tt.expected {
-// 				t.Errorf("IsPolynomialTerm() = %v, expected %v", result, tt.expected)
-// 			}
-// 		})
-// 	}
-// }
+			if result != tt.expected {
+				t.Errorf("IsPolynomialTerm() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
 
 // // TestMapTerms tests the MapTerms function that applies a transformation to each term
 // func TestMapTerms(t *testing.T) {

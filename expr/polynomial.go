@@ -31,3 +31,19 @@ func CountTerms(node Expression) int {
 		return 1
 	}
 }
+
+func IsPolynomialTerm(node Expression) bool {
+	switch e := node.(type) {
+	case *AddExpression, *SubtractExpression:
+		return false
+	case *MultiplyExpression:
+		return IsPolynomialTerm(e.Left) && IsPolynomialTerm(e.Right)
+	case *DivideExpression:
+		_, ok := e.Right.Eval()
+		return IsPolynomialTerm(e.Left) && ok
+	case *Constant, *Variable:
+		return true
+	default:
+		return false
+	}
+}
