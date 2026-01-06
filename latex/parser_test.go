@@ -293,3 +293,96 @@ func TestParser_ComplexExpression(t *testing.T) {
 		t.Errorf("expected GroupNode on right")
 	}
 }
+
+func TestParser_Variable(t *testing.T) {
+	input := "x"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	varNode, ok := node.(*VariableNode)
+	if !ok {
+		t.Fatalf("expected VariableNode, got %T", node)
+	}
+
+	if varNode.Name != "x" {
+		t.Errorf("expected variable name 'x', got '%s'", varNode.Name)
+	}
+}
+
+func TestParser_VariableInExpression(t *testing.T) {
+	input := "x + 2"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	// Should parse as: x + 2
+	binOp, ok := node.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode at root, got %T", node)
+	}
+
+	if binOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS operator, got %v", binOp.Operator.Type)
+	}
+
+	// Left should be variable x
+	left, ok := binOp.Left.(*VariableNode)
+	if !ok {
+		t.Fatalf("expected VariableNode on left, got %T", binOp.Left)
+	}
+	if left.Name != "x" {
+		t.Errorf("expected variable name 'x', got '%s'", left.Name)
+	}
+
+	// Right should be number 2
+	right, ok := binOp.Right.(*NumberNode)
+	if !ok || right.Value != 2.0 {
+		t.Errorf("expected right operand 2.0")
+	}
+}
+
+func TestParser_MultipleVariables(t *testing.T) {
+	input := "x + y * z"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	// Should parse as: x + (y * z)
+	binOp, ok := node.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode at root, got %T", node)
+	}
+
+	if binOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS at root, got %v", binOp.Operator.Type)
+	}
+
+	// Left should be variable x
+	left, ok := binOp.Left.(*VariableNode)
+	if !ok || left.Name != "x" {
+		t.Errorf("expected left to be variable 'x'")
+	}
+
+	// Right should be (y * z)
+	rightBinOp, ok := binOp.Right.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode on right, got %T", binOp.Right)
+	}
+
+	if rightBinOp.Operator.Type != MULTIPLY {
+		t.Errorf("expected MULTIPLY on right, got %v", rightBinOp.Operator.Type)
+	}
+}

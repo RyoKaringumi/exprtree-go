@@ -27,6 +27,8 @@ func (r *Renderer) renderNode(node LatexNode, parentPrec int, isRightOperand boo
 	switch n := node.(type) {
 	case *NumberNode:
 		return r.renderNumber(n)
+	case *VariableNode:
+		return r.renderVariable(n)
 	case *BinaryOpNode:
 		return r.renderBinaryOp(n, parentPrec, isRightOperand)
 	case *GroupNode:
@@ -40,6 +42,11 @@ func (r *Renderer) renderNode(node LatexNode, parentPrec int, isRightOperand boo
 func (r *Renderer) renderNumber(node *NumberNode) string {
 	// Use %g to format the number (removes trailing zeros)
 	return fmt.Sprintf("%g", node.Value)
+}
+
+// renderVariable converts a VariableNode to a string
+func (r *Renderer) renderVariable(node *VariableNode) string {
+	return node.Name
 }
 
 // renderBinaryOp converts a BinaryOpNode to a string

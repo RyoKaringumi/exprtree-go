@@ -208,3 +208,66 @@ func TestLexer_Position(t *testing.T) {
 		t.Errorf("expected position 2 for third token, got %d", tok3.Pos)
 	}
 }
+
+func TestLexer_Variables(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"x", "x"},
+		{"y", "y"},
+		{"a", "a"},
+		{"Z", "Z"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			lexer := NewLexer(tt.input)
+			tok := lexer.NextToken()
+
+			if tok.Type != VARIABLE {
+				t.Errorf("expected VARIABLE token, got %v", tok.Type)
+			}
+			if tok.Literal != tt.expected {
+				t.Errorf("expected literal %s, got %s", tt.expected, tok.Literal)
+			}
+		})
+	}
+}
+
+func TestLexer_VariableExpression(t *testing.T) {
+	input := "x + 2"
+	lexer := NewLexer(input)
+
+	expectedTokens := []struct {
+		tokenType TokenType
+		literal   string
+	}{
+		{VARIABLE, "x"},
+		{PLUS, "+"},
+		{NUMBER, "2"},
+		{EOF, ""},
+	}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+
+		if tok.Type != expected.tokenType {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected.tokenType, tok.Type)
+		}
+		if tok.Literal != expected.literal {
+			t.Errorf("token[%d] - expected literal %s, got %s", i, expected.literal, tok.Literal)
+		}
+	}
+}
+
+func TestLexer_MultiCharacterIdentifier(t *testing.T) {
+	// Multi-character identifiers should be marked as ILLEGAL
+	input := "abc"
+	lexer := NewLexer(input)
+
+	tok := lexer.NextToken()
+	if tok.Type != ILLEGAL {
+		t.Errorf("expected ILLEGAL token for multi-character identifier, got %v", tok.Type)
+	}
+}

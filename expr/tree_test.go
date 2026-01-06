@@ -115,3 +115,30 @@ func TestConstantChildren(t *testing.T) {
 		t.Errorf("Expected 0 children for Constant, got %d", len(children))
 	}
 }
+
+func TestVariableEval(t *testing.T) {
+	variable := &Variable{Name: "x"}
+	_, ok := variable.Eval()
+	if ok {
+		t.Errorf("Expected evaluation to fail for variable without context")
+	}
+}
+
+func TestVariableChildren(t *testing.T) {
+	variable := &Variable{Name: "x"}
+	children := variable.Children()
+	if len(children) != 0 {
+		t.Errorf("Expected 0 children for Variable, got %d", len(children))
+	}
+}
+
+func TestExpressionWithVariable(t *testing.T) {
+	// x + 2 should fail to evaluate because x has no value
+	left := &Variable{Name: "x"}
+	right := &Constant{Value: NumberValue{Value: 2.0}}
+	add := NewAddExpression(left, right)
+	_, ok := add.Eval()
+	if ok {
+		t.Errorf("Expected evaluation to fail due to variable")
+	}
+}

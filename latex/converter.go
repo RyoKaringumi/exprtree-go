@@ -26,6 +26,8 @@ func (c *Converter) Convert(node LatexNode) (expr.Expression, error) {
 	switch n := node.(type) {
 	case *NumberNode:
 		return c.convertNumber(n), nil
+	case *VariableNode:
+		return c.convertVariable(n), nil
 	case *BinaryOpNode:
 		return c.convertBinaryOp(n)
 	case *GroupNode:
@@ -39,6 +41,13 @@ func (c *Converter) Convert(node LatexNode) (expr.Expression, error) {
 func (c *Converter) convertNumber(node *NumberNode) expr.Expression {
 	return &expr.Constant{
 		Value: expr.NumberValue{Value: node.Value},
+	}
+}
+
+// convertVariable converts a VariableNode to a Variable
+func (c *Converter) convertVariable(node *VariableNode) expr.Expression {
+	return &expr.Variable{
+		Name: node.Name,
 	}
 }
 

@@ -35,7 +35,7 @@ func (e *Exporter) Export(expression expr.Expression) (LatexNode, error) {
 	case *expr.DivideExpression:
 		return e.exportBinaryOp(exp, DIVIDE, "/")
 	case *expr.Variable:
-		return nil, fmt.Errorf("variable export not yet implemented")
+		return e.exportVariable(exp), nil
 	default:
 		return nil, fmt.Errorf("unknown expression type: %T", expression)
 	}
@@ -49,6 +49,17 @@ func (e *Exporter) exportConstant(constant *expr.Constant) LatexNode {
 			Type:    NUMBER,
 			Literal: fmt.Sprintf("%g", constant.Value.Value),
 			Value:   constant.Value.Value,
+		},
+	}
+}
+
+// exportVariable converts a Variable to a VariableNode
+func (e *Exporter) exportVariable(variable *expr.Variable) LatexNode {
+	return &VariableNode{
+		Name: variable.Name,
+		Token: Token{
+			Type:    VARIABLE,
+			Literal: variable.Name,
 		},
 	}
 }

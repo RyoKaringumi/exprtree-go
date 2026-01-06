@@ -15,6 +15,7 @@ const (
 	DIVIDE                    // /
 	LPAREN                    // (
 	RPAREN                    // )
+	VARIABLE                  // 変数（a-z, A-Z）
 	EOF                       // 入力終端
 	ILLEGAL                   // 不正なトークン
 )
@@ -71,6 +72,11 @@ func (l *Lexer) skipWhitespace() {
 // isDigit checks if a character is a digit
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
+}
+
+// isLetter checks if a character is a letter (a-z, A-Z)
+func isLetter(ch byte) bool {
+	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')
 }
 
 // readNumber reads a number (integer or decimal)
@@ -134,6 +140,17 @@ func (l *Lexer) NextToken() Token {
 				tok.Type = ILLEGAL
 			} else {
 				tok.Value = val
+			}
+			return tok
+		} else if isLetter(l.ch) {
+			// Read a single letter variable
+			tok.Literal = string(l.ch)
+			tok.Type = VARIABLE
+			l.readChar()
+			// Check if the next character is also a letter (multi-character identifier)
+			// If so, mark as ILLEGAL since we only support single-character variables
+			if isLetter(l.ch) {
+				tok.Type = ILLEGAL
 			}
 			return tok
 		} else {

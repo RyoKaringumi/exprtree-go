@@ -165,3 +165,8 @@ func (e *DivideExpression) Eval() (ExpressValue, bool) {
 func (c *Constant) Eval() (ExpressValue, bool) {
 	return &c.Value, true
 }
+
+func (v *Variable) Eval() (ExpressValue, bool) {
+	// Variables cannot be evaluated without a value assignment context
+	return nil, false
+}

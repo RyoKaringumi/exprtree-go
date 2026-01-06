@@ -123,4 +123,20 @@ func main() {
 			fmt.Printf("Reconstructed: %s\n", reconstructed)
 		}
 	}
+
+	variableExpr, err := latex.ParseLatex("x + 2")
+	fmt.Printf("\nExample 6: Handling variables\n")
+	if err != nil {
+		fmt.Printf("Parse error: %v\n", err)
+	} else {
+		fmt.Printf("Parsed expression with variable successfully\n")
+		result8, ok := variableExpr.Eval()
+		if !ok {
+			fmt.Printf("Evaluation failed due to variable\n")
+		} else {
+			if numResult, ok := result8.(*expr.NumberValue); ok {
+				fmt.Printf("Evaluated: %.2f\n", numResult.Value)
+			}
+		}
+	}
 }

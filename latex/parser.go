@@ -19,6 +19,14 @@ type NumberNode struct {
 
 func (n *NumberNode) NodeType() string { return "NumberNode" }
 
+// VariableNode represents a variable
+type VariableNode struct {
+	Name  string
+	Token Token
+}
+
+func (n *VariableNode) NodeType() string { return "VariableNode" }
+
 // BinaryOpNode represents a binary operation
 type BinaryOpNode struct {
 	Left     LatexNode
@@ -99,6 +107,8 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 	switch p.currentToken.Type {
 	case NUMBER:
 		left = p.parseNumber()
+	case VARIABLE:
+		left = p.parseVariable()
 	case LPAREN:
 		left = p.parseGroupExpression()
 	default:
@@ -124,6 +134,14 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 func (p *Parser) parseNumber() LatexNode {
 	return &NumberNode{
 		Value: p.currentToken.Value,
+		Token: p.currentToken,
+	}
+}
+
+// parseVariable parses a variable
+func (p *Parser) parseVariable() LatexNode {
+	return &VariableNode{
+		Name:  p.currentToken.Literal,
 		Token: p.currentToken,
 	}
 }
