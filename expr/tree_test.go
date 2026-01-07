@@ -461,3 +461,286 @@ func TestPatternMatchAndSubstituteRoundTrip(t *testing.T) {
 		t.Errorf("Round-trip failed: result does not match original expression")
 	}
 }
+
+// ===== Power Expression Tests =====
+
+func TestPowerExpressionBasic(t *testing.T) {
+	// 2^3 = 8
+	base := &Constant{Value: NumberValue{Value: 2.0}}
+	exponent := &Constant{Value: NumberValue{Value: 3.0}}
+	pow := NewPowerExpression(base, exponent)
+	result, ok := pow.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 8.0 {
+			t.Errorf("Expected 8.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionZeroExponent(t *testing.T) {
+	// 5^0 = 1
+	base := &Constant{Value: NumberValue{Value: 5.0}}
+	exponent := &Constant{Value: NumberValue{Value: 0.0}}
+	pow := NewPowerExpression(base, exponent)
+	result, ok := pow.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 1.0 {
+			t.Errorf("Expected 1.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionOneExponent(t *testing.T) {
+	// 5^1 = 5
+	base := &Constant{Value: NumberValue{Value: 5.0}}
+	exponent := &Constant{Value: NumberValue{Value: 1.0}}
+	pow := NewPowerExpression(base, exponent)
+	result, ok := pow.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 5.0 {
+			t.Errorf("Expected 5.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionNegativeExponent(t *testing.T) {
+	// 2^(-2) = 0.25
+	base := &Constant{Value: NumberValue{Value: 2.0}}
+	exponent := &Constant{Value: NumberValue{Value: -2.0}}
+	pow := NewPowerExpression(base, exponent)
+	result, ok := pow.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 0.25 {
+			t.Errorf("Expected 0.25, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionFractionalExponent(t *testing.T) {
+	// 4^0.5 = 2
+	base := &Constant{Value: NumberValue{Value: 4.0}}
+	exponent := &Constant{Value: NumberValue{Value: 0.5}}
+	pow := NewPowerExpression(base, exponent)
+	result, ok := pow.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 2.0 {
+			t.Errorf("Expected 2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionNested(t *testing.T) {
+	// (2^2)^3 = 4^3 = 64
+	inner := NewPowerExpression(
+		&Constant{Value: NumberValue{Value: 2.0}},
+		&Constant{Value: NumberValue{Value: 2.0}},
+	)
+	outer := NewPowerExpression(
+		inner,
+		&Constant{Value: NumberValue{Value: 3.0}},
+	)
+	result, ok := outer.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 64.0 {
+			t.Errorf("Expected 64.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionZeroToZero(t *testing.T) {
+	// 0^0 is mathematically undefined, but many implementations define it as 1
+	base := &Constant{Value: NumberValue{Value: 0.0}}
+	exponent := &Constant{Value: NumberValue{Value: 0.0}}
+	pow := NewPowerExpression(base, exponent)
+	result, ok := pow.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 1.0 {
+			t.Errorf("Expected 1.0 for 0^0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestPowerExpressionChildren(t *testing.T) {
+	base := &Constant{Value: NumberValue{Value: 2.0}}
+	exponent := &Constant{Value: NumberValue{Value: 3.0}}
+	pow := NewPowerExpression(base, exponent)
+	children := pow.Children()
+	if len(children) != 2 {
+		t.Errorf("Expected 2 children, got %d", len(children))
+	}
+	if children[0] != base || children[1] != exponent {
+		t.Errorf("Children do not match expected base and exponent")
+	}
+}
+
+// ===== Square Root Expression Tests =====
+
+func TestSqrtExpressionBasic(t *testing.T) {
+	// sqrt(4) = 2
+	arg := &Constant{Value: NumberValue{Value: 4.0}}
+	sqrt := NewSqrtExpression(arg)
+	result, ok := sqrt.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 2.0 {
+			t.Errorf("Expected 2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestSqrtExpressionZero(t *testing.T) {
+	// sqrt(0) = 0
+	arg := &Constant{Value: NumberValue{Value: 0.0}}
+	sqrt := NewSqrtExpression(arg)
+	result, ok := sqrt.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 0.0 {
+			t.Errorf("Expected 0.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestSqrtExpressionOne(t *testing.T) {
+	// sqrt(1) = 1
+	arg := &Constant{Value: NumberValue{Value: 1.0}}
+	sqrt := NewSqrtExpression(arg)
+	result, ok := sqrt.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 1.0 {
+			t.Errorf("Expected 1.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestSqrtExpressionDecimal(t *testing.T) {
+	// sqrt(2.25) = 1.5
+	arg := &Constant{Value: NumberValue{Value: 2.25}}
+	sqrt := NewSqrtExpression(arg)
+	result, ok := sqrt.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 1.5 {
+			t.Errorf("Expected 1.5, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestSqrtExpressionNegative(t *testing.T) {
+	// sqrt(-1) should fail (no complex number support)
+	arg := &Constant{Value: NumberValue{Value: -1.0}}
+	sqrt := NewSqrtExpression(arg)
+	_, ok := sqrt.Eval()
+	if ok {
+		t.Errorf("Expected evaluation to fail for negative number")
+	}
+}
+
+func TestSqrtExpressionNested(t *testing.T) {
+	// sqrt(sqrt(16)) = sqrt(4) = 2
+	inner := NewSqrtExpression(
+		&Constant{Value: NumberValue{Value: 16.0}},
+	)
+	outer := NewSqrtExpression(inner)
+	result, ok := outer.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 2.0 {
+			t.Errorf("Expected 2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestSqrtExpressionChildren(t *testing.T) {
+	arg := &Constant{Value: NumberValue{Value: 4.0}}
+	sqrt := NewSqrtExpression(arg)
+	children := sqrt.Children()
+	if len(children) != 1 {
+		t.Errorf("Expected 1 child, got %d", len(children))
+	}
+	if children[0] != arg {
+		t.Errorf("Child does not match expected argument")
+	}
+}
+
+func TestSqrtExpressionWithComplexExpression(t *testing.T) {
+	// sqrt(3^2 + 4^2) = sqrt(9 + 16) = sqrt(25) = 5
+	// This tests the Pythagorean theorem
+	pow1 := NewPowerExpression(
+		&Constant{Value: NumberValue{Value: 3.0}},
+		&Constant{Value: NumberValue{Value: 2.0}},
+	)
+	pow2 := NewPowerExpression(
+		&Constant{Value: NumberValue{Value: 4.0}},
+		&Constant{Value: NumberValue{Value: 2.0}},
+	)
+	sum := NewAddExpression(pow1, pow2)
+	sqrt := NewSqrtExpression(sum)
+	result, ok := sqrt.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 5.0 {
+			t.Errorf("Expected 5.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}

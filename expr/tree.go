@@ -1,5 +1,7 @@
 package expr
 
+import "math"
+
 type ExpressValue interface {
 }
 
@@ -188,8 +190,9 @@ func (v *Variable) Eval() (ExpressValue, bool) {
 // Returns a map of variable names to their matched expressions, and a success flag.
 //
 // Example:
-//   pattern: x(y+z)  → x matches (x+3), y matches 1, z matches z
-//   expr: (x+3)(1+z)
+//
+//	pattern: x(y+z)  → x matches (x+3), y matches 1, z matches z
+//	expr: (x+3)(1+z)
 func PatternMatch(pattern Expression, expr Expression) (map[string]Expression, bool) {
 	bindings := make(map[string]Expression)
 	ok := patternMatchHelper(pattern, expr, bindings)
@@ -288,9 +291,10 @@ func expressionsEqual(expr1, expr2 Expression) bool {
 // This is the inverse operation of PatternMatch.
 //
 // Example:
-//   expr: x(y+z)
-//   bindings: {x: (x+3), y: 1, z: z}
-//   result: (x+3)(1+z)
+//
+//	expr: x(y+z)
+//	bindings: {x: (x+3), y: 1, z: z}
+//	result: (x+3)(1+z)
 func Substitute(expr Expression, bindings map[string]Expression) Expression {
 	// If expr is a variable, replace it if a binding exists
 	if v, ok := expr.(*Variable); ok {
@@ -332,4 +336,62 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 
 	// Unknown expression type, return as-is
 	return expr
+}
+
+type PowerExpression struct {
+	BinaryExpression
+}
+
+func NewPowerExpression(base, exponent Expression) *PowerExpression {
+	return &PowerExpression{
+		BinaryExpression: BinaryExpression{
+			Left:  base,
+			Right: exponent,
+		},
+	}
+}
+
+func (e *PowerExpression) Eval() (ExpressValue, bool) {
+	baseVal, baseOk := e.Left.Eval()
+	exponentVal, exponentOk := e.Right.Eval()
+
+	if !baseOk || !exponentOk {
+		return nil, false
+	}
+
+	if baseNum, ok := baseVal.(*NumberValue); ok {
+		if exponentNum, ok := exponentVal.(*NumberValue); ok {
+			return &NumberValue{Value: math.Pow(baseNum.Value, exponentNum.Value)}, true
+		}
+	}
+	return nil, false
+}
+
+type SqrtExpression struct {
+	Expression
+	Operand Expression
+}
+
+func NewSqrtExpression(operand Expression) *SqrtExpression {
+	return &SqrtExpression{
+		Operand: operand,
+	}
+}
+
+func (e *SqrtExpression) Eval() (ExpressValue, bool) {
+	operandVal, operandOk := e.Operand.Eval()
+
+	if !operandOk {
+		return nil, false
+	}
+	if operandNum, ok := operandVal.(*NumberValue); ok {
+		if operandNum.Value >= 0 {
+			return &NumberValue{Value: math.Sqrt(operandNum.Value)}, true
+		}
+	}
+	return nil, false
+}
+
+func (e *SqrtExpression) Children() []Expression {
+	return []Expression{e.Operand}
 }
