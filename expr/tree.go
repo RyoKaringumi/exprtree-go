@@ -241,6 +241,19 @@ func patternMatchHelper(pattern Expression, expr Expression, bindings map[string
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
+	case *PowerExpression:
+		if e, ok := expr.(*PowerExpression); ok {
+			return patternMatchHelper(p.Left, e.Left, bindings) &&
+				patternMatchHelper(p.Right, e.Right, bindings)
+		}
+	case *SqrtExpression:
+		if e, ok := expr.(*SqrtExpression); ok {
+			// Root degree must match exactly
+			if p.N != e.N {
+				return false
+			}
+			return patternMatchHelper(p.Operand, e.Operand, bindings)
+		}
 	}
 
 	return false
@@ -281,6 +294,14 @@ func expressionsEqual(expr1, expr2 Expression) bool {
 	case *DivideExpression:
 		if e2, ok := expr2.(*DivideExpression); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	case *PowerExpression:
+		if e2, ok := expr2.(*PowerExpression); ok {
+			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	case *SqrtExpression:
+		if e2, ok := expr2.(*SqrtExpression); ok {
+			return e1.N == e2.N && expressionsEqual(e1.Operand, e2.Operand)
 		}
 	}
 
@@ -338,8 +359,9 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 			Substitute(e.Right, bindings),
 		)
 	case *SqrtExpression:
-		return NewSqrtExpression(
+		return NewNthRootExpression(
 			Substitute(e.Operand, bindings),
+			e.N,
 		)
 	}
 
@@ -379,11 +401,17 @@ func (e *PowerExpression) Eval() (ExpressValue, bool) {
 type SqrtExpression struct {
 	Expression
 	Operand Expression
+	N       float64 // Root degree (e.g., 2 for square root, 3 for cube root)
 }
 
 func NewSqrtExpression(operand Expression) *SqrtExpression {
+	return NewNthRootExpression(operand, 2)
+}
+
+func NewNthRootExpression(operand Expression, n float64) *SqrtExpression {
 	return &SqrtExpression{
 		Operand: operand,
+		N:       n,
 	}
 }
 
@@ -394,9 +422,21 @@ func (e *SqrtExpression) Eval() (ExpressValue, bool) {
 		return nil, false
 	}
 	if operandNum, ok := operandVal.(*NumberValue); ok {
-		if operandNum.Value >= 0 {
-			return &NumberValue{Value: math.Sqrt(operandNum.Value)}, true
+		// For even roots, operand must be non-negative
+		// For odd roots, negative values are allowed
+		isEvenRoot := int(e.N)%2 == 0
+		if isEvenRoot && operandNum.Value < 0 {
+			return nil, false
 		}
+
+		// Calculate nth root: x^(1/n)
+		// For negative values with odd roots, handle sign separately
+		if operandNum.Value < 0 {
+			result := -math.Pow(-operandNum.Value, 1.0/e.N)
+			return &NumberValue{Value: result}, true
+		}
+
+		return &NumberValue{Value: math.Pow(operandNum.Value, 1.0/e.N)}, true
 	}
 	return nil, false
 }

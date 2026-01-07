@@ -1,6 +1,15 @@
 package expr
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
+
+const floatEpsilon = 1e-9
+
+func almostEqual(a, b float64) bool {
+	return math.Abs(a-b) < floatEpsilon
+}
 
 func TestConstantEval(t *testing.T) {
 	constant := &Constant{Value: NumberValue{Value: 5.0}}
@@ -742,5 +751,111 @@ func TestSqrtExpressionWithComplexExpression(t *testing.T) {
 		}
 	} else {
 		t.Errorf("Expected NumberValue")
+	}
+}
+
+// ===== Nth Root Expression Tests =====
+
+func TestCubeRoot(t *testing.T) {
+	// ∛8 = 2
+	arg := &Constant{Value: NumberValue{Value: 8.0}}
+	cubeRoot := NewNthRootExpression(arg, 3)
+	result, ok := cubeRoot.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if !almostEqual(num.Value, 2.0) {
+			t.Errorf("Expected 2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestFourthRoot(t *testing.T) {
+	// ⁴√16 = 2
+	arg := &Constant{Value: NumberValue{Value: 16.0}}
+	fourthRoot := NewNthRootExpression(arg, 4)
+	result, ok := fourthRoot.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 2.0 {
+			t.Errorf("Expected 2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestCubeRootOfNegative(t *testing.T) {
+	// ∛(-8) = -2 (odd roots of negative numbers are allowed)
+	arg := &Constant{Value: NumberValue{Value: -8.0}}
+	cubeRoot := NewNthRootExpression(arg, 3)
+	result, ok := cubeRoot.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if !almostEqual(num.Value, -2.0) {
+			t.Errorf("Expected -2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestEvenRootOfNegative(t *testing.T) {
+	// ⁴√(-16) should fail (even roots of negative numbers are not allowed)
+	arg := &Constant{Value: NumberValue{Value: -16.0}}
+	fourthRoot := NewNthRootExpression(arg, 4)
+	_, ok := fourthRoot.Eval()
+	if ok {
+		t.Errorf("Expected evaluation to fail for even root of negative number")
+	}
+}
+
+func TestFifthRoot(t *testing.T) {
+	// ⁵√32 = 2
+	arg := &Constant{Value: NumberValue{Value: 32.0}}
+	fifthRoot := NewNthRootExpression(arg, 5)
+	result, ok := fifthRoot.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if num, ok := result.(*NumberValue); ok {
+		if num.Value != 2.0 {
+			t.Errorf("Expected 2.0, got %f", num.Value)
+		}
+	} else {
+		t.Errorf("Expected NumberValue")
+	}
+}
+
+func TestNthRootChildren(t *testing.T) {
+	arg := &Constant{Value: NumberValue{Value: 8.0}}
+	cubeRoot := NewNthRootExpression(arg, 3)
+	children := cubeRoot.Children()
+	if len(children) != 1 {
+		t.Errorf("Expected 1 child, got %d", len(children))
+	}
+	if children[0] != arg {
+		t.Errorf("Child does not match expected argument")
+	}
+}
+
+func TestNthRootNValue(t *testing.T) {
+	// Test that N is correctly set
+	cubeRoot := NewNthRootExpression(&Constant{Value: NumberValue{Value: 8.0}}, 3)
+	if cubeRoot.N != 3.0 {
+		t.Errorf("Expected N to be 3.0, got %f", cubeRoot.N)
+	}
+
+	// Test that NewSqrtExpression sets N to 2
+	sqrtExpr := NewSqrtExpression(&Constant{Value: NumberValue{Value: 4.0}})
+	if sqrtExpr.N != 2.0 {
+		t.Errorf("Expected N to be 2.0 for NewSqrtExpression, got %f", sqrtExpr.N)
 	}
 }
