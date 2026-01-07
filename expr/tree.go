@@ -332,6 +332,15 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
+	case *PowerExpression:
+		return NewPowerExpression(
+			Substitute(e.Left, bindings),
+			Substitute(e.Right, bindings),
+		)
+	case *SqrtExpression:
+		return NewSqrtExpression(
+			Substitute(e.Operand, bindings),
+		)
 	}
 
 	// Unknown expression type, return as-is
