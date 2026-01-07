@@ -271,3 +271,127 @@ func TestLexer_MultiCharacterIdentifier(t *testing.T) {
 		t.Errorf("expected ILLEGAL token for multi-character identifier, got %v", tok.Type)
 	}
 }
+
+func TestLexer_Caret(t *testing.T) {
+	input := "2^3"
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{NUMBER, CARET, NUMBER, EOF}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}
+
+func TestLexer_Braces(t *testing.T) {
+	input := "{2+3}"
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{LBRACE, NUMBER, PLUS, NUMBER, RBRACE, EOF}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}
+
+func TestLexer_Brackets(t *testing.T) {
+	input := "[3]"
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{LBRACKET, NUMBER, RBRACKET, EOF}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}
+
+func TestLexer_SqrtCommand(t *testing.T) {
+	input := "\\sqrt{4}"
+	lexer := NewLexer(input)
+
+	tok1 := lexer.NextToken()
+	if tok1.Type != COMMAND {
+		t.Errorf("expected COMMAND token, got %v", tok1.Type)
+	}
+	if tok1.Literal != "sqrt" {
+		t.Errorf("expected literal 'sqrt', got '%s'", tok1.Literal)
+	}
+
+	tok2 := lexer.NextToken()
+	if tok2.Type != LBRACE {
+		t.Errorf("expected LBRACE, got %v", tok2.Type)
+	}
+
+	tok3 := lexer.NextToken()
+	if tok3.Type != NUMBER || tok3.Value != 4.0 {
+		t.Errorf("expected NUMBER 4, got %v with value %f", tok3.Type, tok3.Value)
+	}
+
+	tok4 := lexer.NextToken()
+	if tok4.Type != RBRACE {
+		t.Errorf("expected RBRACE, got %v", tok4.Type)
+	}
+}
+
+func TestLexer_SqrtWithOptional(t *testing.T) {
+	input := "\\sqrt[3]{8}"
+	lexer := NewLexer(input)
+
+	expectedTokens := []struct {
+		tokenType TokenType
+		literal   string
+		value     float64
+	}{
+		{COMMAND, "sqrt", 0},
+		{LBRACKET, "[", 0},
+		{NUMBER, "3", 3.0},
+		{RBRACKET, "]", 0},
+		{LBRACE, "{", 0},
+		{NUMBER, "8", 8.0},
+		{RBRACE, "}", 0},
+		{EOF, "", 0},
+	}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected.tokenType {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected.tokenType, tok.Type)
+		}
+		if tok.Literal != expected.literal && expected.literal != "" {
+			t.Errorf("token[%d] - expected literal %s, got %s", i, expected.literal, tok.Literal)
+		}
+	}
+}
+
+func TestLexer_UnknownCommand(t *testing.T) {
+	input := "\\unknown"
+	lexer := NewLexer(input)
+
+	tok := lexer.NextToken()
+	if tok.Type != ILLEGAL {
+		t.Errorf("expected ILLEGAL token for unknown command, got %v", tok.Type)
+	}
+}
+
+func TestLexer_ComplexPowerExpression(t *testing.T) {
+	input := "2^3^4"
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{NUMBER, CARET, NUMBER, CARET, NUMBER, EOF}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}

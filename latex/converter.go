@@ -32,6 +32,8 @@ func (c *Converter) Convert(node LatexNode) (expr.Expression, error) {
 		return c.convertBinaryOp(n)
 	case *GroupNode:
 		return c.convertGroup(n)
+	case *CommandNode:
+		return c.convertCommand(n)
 	default:
 		return nil, fmt.Errorf("unknown node type: %T", node)
 	}
@@ -74,6 +76,8 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error)
 		return expr.NewMultiplyExpression(left, right), nil
 	case DIVIDE:
 		return expr.NewDivideExpression(left, right), nil
+	case CARET:
+		return expr.NewPowerExpression(left, right), nil
 	default:
 		return nil, fmt.Errorf("unknown operator: %v", node.Operator.Type)
 	}
@@ -83,6 +87,44 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error)
 func (c *Converter) convertGroup(node *GroupNode) (expr.Expression, error) {
 	// Groups are just for parsing precedence, we don't need them in the Expression tree
 	return c.Convert(node.Inner)
+}
+
+// convertCommand converts a CommandNode to the appropriate Expression
+func (c *Converter) convertCommand(node *CommandNode) (expr.Expression, error) {
+	switch node.Name {
+	case "sqrt":
+		return c.convertSqrt(node)
+	default:
+		return nil, fmt.Errorf("unknown command: \\%s", node.Name)
+	}
+}
+
+// convertSqrt converts \sqrt command to SqrtExpression
+func (c *Converter) convertSqrt(node *CommandNode) (expr.Expression, error) {
+	// Convert the argument (radicand)
+	argument, err := c.Convert(node.Argument)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert sqrt argument: %w", err)
+	}
+
+	// Handle optional root degree [n]
+	if node.Optional != nil {
+		optionalExpr, err := c.Convert(node.Optional)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert sqrt optional argument: %w", err)
+		}
+
+		// Extract numeric value from optional argument
+		constant, ok := optionalExpr.(*expr.Constant)
+		if !ok {
+			return nil, fmt.Errorf("sqrt optional argument must be a constant number")
+		}
+
+		return expr.NewNthRootExpression(argument, constant.Value.Value), nil
+	}
+
+	// Default to square root (N=2)
+	return expr.NewSqrtExpression(argument), nil
 }
 
 // Errors returns the list of conversion errors

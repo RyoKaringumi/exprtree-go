@@ -44,6 +44,16 @@ type GroupNode struct {
 
 func (n *GroupNode) NodeType() string { return "GroupNode" }
 
+// CommandNode represents a LaTeX command like \sqrt
+type CommandNode struct {
+	Name     string
+	Argument LatexNode
+	Optional LatexNode // nil if not present
+	Token    Token
+}
+
+func (n *CommandNode) NodeType() string { return "CommandNode" }
+
 // Parser parses tokens into a LaTeX AST
 type Parser struct {
 	lexer        *Lexer
@@ -58,6 +68,7 @@ const (
 	LOWEST
 	SUM     // +, -
 	PRODUCT // *, /
+	POWER   // ^
 )
 
 // precedences maps token types to their precedence
@@ -66,6 +77,7 @@ var precedences = map[TokenType]int{
 	MINUS:    SUM,
 	MULTIPLY: PRODUCT,
 	DIVIDE:   PRODUCT,
+	CARET:    POWER,
 }
 
 // NewParser creates a new Parser instance
@@ -111,6 +123,8 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 		left = p.parseVariable()
 	case LPAREN:
 		left = p.parseGroupExpression()
+	case COMMAND:
+		left = p.parseCommand()
 	default:
 		p.errors = append(p.errors, fmt.Sprintf("unexpected token at position %d: %s", p.currentToken.Pos, p.currentToken.Literal))
 		return nil
@@ -119,7 +133,7 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 	// Parse infix expressions with precedence climbing
 	for p.peekToken.Type != EOF && precedence < p.peekPrecedence() {
 		switch p.peekToken.Type {
-		case PLUS, MINUS, MULTIPLY, DIVIDE:
+		case PLUS, MINUS, MULTIPLY, DIVIDE, CARET:
 			p.nextToken()
 			left = p.parseBinaryOp(left)
 		default:
@@ -165,6 +179,47 @@ func (p *Parser) parseGroupExpression() LatexNode {
 	}
 }
 
+// parseCommand parses \sqrt{...} and \sqrt[n]{...}
+func (p *Parser) parseCommand() LatexNode {
+	token := p.currentToken
+	commandName := token.Literal
+
+	var optional LatexNode
+
+	// Check for optional argument [n]
+	if p.peekToken.Type == LBRACKET {
+		p.nextToken() // consume LBRACKET
+		p.nextToken() // move to content
+		optional = p.parseExpression(LOWEST)
+
+		if !p.expectPeek(RBRACKET) {
+			p.errors = append(p.errors, fmt.Sprintf("expected ']' at position %d", p.peekToken.Pos))
+			return nil
+		}
+	}
+
+	// Parse required argument {expr}
+	if !p.expectPeek(LBRACE) {
+		p.errors = append(p.errors, fmt.Sprintf("expected '{' after \\%s at position %d", commandName, p.peekToken.Pos))
+		return nil
+	}
+
+	p.nextToken() // move past LBRACE
+	argument := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(RBRACE) {
+		p.errors = append(p.errors, fmt.Sprintf("expected '}' at position %d", p.peekToken.Pos))
+		return nil
+	}
+
+	return &CommandNode{
+		Name:     commandName,
+		Argument: argument,
+		Optional: optional,
+		Token:    token,
+	}
+}
+
 // parseBinaryOp parses a binary operation
 func (p *Parser) parseBinaryOp(left LatexNode) LatexNode {
 	node := &BinaryOpNode{
@@ -174,7 +229,13 @@ func (p *Parser) parseBinaryOp(left LatexNode) LatexNode {
 
 	precedence := p.currentPrecedence()
 	p.nextToken()
-	node.Right = p.parseExpression(precedence)
+
+	// Right-associative for power (^), left-associative for others
+	if node.Operator.Type == CARET {
+		node.Right = p.parseExpression(precedence - 1) // Right-associative: use precedence - 1
+	} else {
+		node.Right = p.parseExpression(precedence) // Left-associative: use same precedence
+	}
 
 	return node
 }

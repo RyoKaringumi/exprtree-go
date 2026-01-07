@@ -161,3 +161,92 @@ func TestIntegration_Whitespace(t *testing.T) {
 		})
 	}
 }
+
+func TestIntegration_Power(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected float64
+	}{
+		{"2^3", 8.0},
+		{"2^3^2", 512.0},        // Right associative: 2^(3^2) = 2^9
+		{"(2^3)^2", 64.0},       // Parentheses override: (2^3)^2 = 8^2
+		{"2 + 3^4", 83.0},       // Precedence: 2 + (3^4) = 2 + 81
+		{"2 * 3^2", 18.0},       // 2 * (3^2) = 2 * 9
+		{"4^0.5", 2.0},          // Fractional exponent
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result, err := latex.ParseAndEval(tt.input)
+			if err != nil {
+				t.Fatalf("Parse/eval error for '%s': %v", tt.input, err)
+			}
+			if result.Value != tt.expected {
+				t.Errorf("For '%s': expected %f, got %f", tt.input, tt.expected, result.Value)
+			}
+		})
+	}
+}
+
+func TestIntegration_Sqrt(t *testing.T) {
+	tests := []struct {
+		input     string
+		expected  float64
+		tolerance float64
+	}{
+		{"\\sqrt{4}", 2.0, 0},
+		{"\\sqrt{9}", 3.0, 0},
+		{"\\sqrt{2.25}", 1.5, 0},
+		{"\\sqrt[3]{8}", 2.0, 1e-10},
+		{"\\sqrt[3]{27}", 3.0, 1e-10},
+		{"\\sqrt[4]{16}", 2.0, 1e-10},
+		{"2 + \\sqrt{9}", 5.0, 0},
+		{"\\sqrt{9} * 2", 6.0, 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result, err := latex.ParseAndEval(tt.input)
+			if err != nil {
+				t.Fatalf("Parse/eval error for '%s': %v", tt.input, err)
+			}
+			diff := result.Value - tt.expected
+			if diff < 0 {
+				diff = -diff
+			}
+			if diff > tt.tolerance {
+				t.Errorf("For '%s': expected %f, got %f (diff: %e)", tt.input, tt.expected, result.Value, diff)
+			}
+		})
+	}
+}
+
+func TestIntegration_PowerAndSqrt(t *testing.T) {
+	tests := []struct {
+		input     string
+		expected  float64
+		tolerance float64
+	}{
+		{"\\sqrt{3^2 + 4^2}", 5.0, 0},        // Pythagorean: sqrt(9+16) = sqrt(25)
+		{"\\sqrt{2^4}", 4.0, 0},              // sqrt(16)
+		{"2^\\sqrt{4}", 4.0, 0},              // 2^2
+		{"(\\sqrt{9})^2", 9.0, 0},            // 3^2
+		{"\\sqrt[3]{2^3}", 2.0, 1e-10},       // cbrt(8)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result, err := latex.ParseAndEval(tt.input)
+			if err != nil {
+				t.Fatalf("Parse/eval error for '%s': %v", tt.input, err)
+			}
+			diff := result.Value - tt.expected
+			if diff < 0 {
+				diff = -diff
+			}
+			if diff > tt.tolerance {
+				t.Errorf("For '%s': expected %f, got %f (diff: %e)", tt.input, tt.expected, result.Value, diff)
+			}
+		})
+	}
+}

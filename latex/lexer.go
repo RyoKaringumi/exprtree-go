@@ -16,6 +16,12 @@ const (
 	LPAREN                    // (
 	RPAREN                    // )
 	VARIABLE                  // 変数（a-z, A-Z）
+	CARET                     // ^
+	LBRACE                    // {
+	RBRACE                    // }
+	LBRACKET                  // [
+	RBRACKET                  // ]
+	COMMAND                   // \sqrt, etc.
 	EOF                       // 入力終端
 	ILLEGAL                   // 不正なトークン
 )
@@ -79,6 +85,19 @@ func isLetter(ch byte) bool {
 	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z')
 }
 
+// readCommand reads a LaTeX command starting with backslash
+func (l *Lexer) readCommand() string {
+	startPos := l.position
+	l.readChar() // skip '\'
+
+	// Read command name (letters only)
+	for isLetter(l.ch) {
+		l.readChar()
+	}
+
+	return l.input[startPos+1 : l.position]
+}
+
 // readNumber reads a number (integer or decimal)
 func (l *Lexer) readNumber() string {
 	startPos := l.position
@@ -128,6 +147,29 @@ func (l *Lexer) NextToken() Token {
 	case ')':
 		tok = Token{Type: RPAREN, Literal: ")", Pos: l.position}
 		l.readChar()
+	case '^':
+		tok = Token{Type: CARET, Literal: "^", Pos: l.position}
+		l.readChar()
+	case '{':
+		tok = Token{Type: LBRACE, Literal: "{", Pos: l.position}
+		l.readChar()
+	case '}':
+		tok = Token{Type: RBRACE, Literal: "}", Pos: l.position}
+		l.readChar()
+	case '[':
+		tok = Token{Type: LBRACKET, Literal: "[", Pos: l.position}
+		l.readChar()
+	case ']':
+		tok = Token{Type: RBRACKET, Literal: "]", Pos: l.position}
+		l.readChar()
+	case '\\':
+		cmdName := l.readCommand()
+		if cmdName == "sqrt" {
+			tok = Token{Type: COMMAND, Literal: cmdName, Pos: l.position - len(cmdName) - 1}
+			return tok
+		}
+		tok = Token{Type: ILLEGAL, Literal: "\\" + cmdName, Pos: l.position}
+		return tok
 	case 0:
 		tok = Token{Type: EOF, Literal: "", Pos: l.position}
 	default:
