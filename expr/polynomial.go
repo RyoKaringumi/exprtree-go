@@ -43,6 +43,10 @@ func IsPolynomialTerm(node Expression) bool {
 		return IsPolynomialTerm(e.Left) && ok
 	case *Constant, *Variable:
 		return true
+	case *PowerExpression:
+		return true
+	case *SqrtExpression:
+		return true
 	default:
 		return false
 	}

@@ -41,6 +41,10 @@ func IsMonomial(node Expression) bool {
 	case *DivideExpression:
 		_, ok := e.Right.Eval()
 		return IsMonomial(e.Left) && ok
+	case *PowerExpression:
+		return true
+	case *SqrtExpression:
+		return true
 	default:
 		return false
 	}

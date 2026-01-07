@@ -153,6 +153,88 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		{
+			name: "power expression in addition: x^2 + x",
+			expr: NewAddExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewVariable("x"),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewVariable("x"),
+			},
+		},
+		{
+			name: "sqrt in polynomial: x + sqrt(x)",
+			expr: NewAddExpression(
+				NewVariable("x"),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			),
+			expected: []Expression{
+				NewVariable("x"),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			},
+		},
+		{
+			name: "complex polynomial with power: 3*x^2 + 2*x + 1",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewMultiplyExpression(
+						NewConstant(3),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewMultiplyExpression(
+						NewConstant(2),
+						NewVariable("x"),
+					),
+				),
+				NewConstant(1),
+			),
+			expected: []Expression{
+				NewMultiplyExpression(
+					NewConstant(3),
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+				),
+				NewMultiplyExpression(
+					NewConstant(2),
+					NewVariable("x"),
+				),
+				NewConstant(1),
+			},
+		},
+		{
+			name: "nth root in addition: x + cbrt(x)",
+			expr: NewAddExpression(
+				NewVariable("x"),
+				NewNthRootExpression(
+					NewVariable("x"),
+					3,
+				),
+			),
+			expected: []Expression{
+				NewVariable("x"),
+				NewNthRootExpression(
+					NewVariable("x"),
+					3,
+				),
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -487,6 +569,50 @@ func TestIsPolynomialTerm(t *testing.T) {
 				NewConstant(3),
 			),
 			expected: false,
+		},
+		{
+			name: "power expression: x^2",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(2),
+			),
+			expected: true,
+		},
+		{
+			name: "power with coefficient: 3 * x^2",
+			expr: NewMultiplyExpression(
+				NewConstant(3),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "sqrt expression: sqrt(x)",
+			expr: NewSqrtExpression(
+				NewVariable("x"),
+			),
+			expected: true,
+		},
+		{
+			name: "nth root: cbrt(8)",
+			expr: NewNthRootExpression(
+				NewConstant(8),
+				3,
+			),
+			expected: true,
+		},
+		{
+			name: "sqrt with coefficient: 2 * sqrt(x)",
+			expr: NewMultiplyExpression(
+				NewConstant(2),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			),
+			expected: true,
 		},
 	}
 

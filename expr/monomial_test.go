@@ -156,6 +156,79 @@ func TestSplitToFactors(t *testing.T) {
 				NewConstant(4),
 			},
 		},
+		{
+			name: "power expression: x^2",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(2),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			},
+		},
+		{
+			name: "multiplication with power: 3 * x^2",
+			expr: NewMultiplyExpression(
+				NewConstant(3),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: []Expression{
+				NewConstant(3),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			},
+		},
+		{
+			name: "sqrt expression: sqrt(x)",
+			expr: NewSqrtExpression(
+				NewVariable("x"),
+			),
+			expected: []Expression{
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			},
+		},
+		{
+			name: "multiplication with sqrt: 2 * sqrt(x) * y",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewConstant(2),
+					NewSqrtExpression(
+						NewVariable("x"),
+					),
+				),
+				NewVariable("y"),
+			),
+			expected: []Expression{
+				NewConstant(2),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewVariable("y"),
+			},
+		},
+		{
+			name: "nth root expression: cbrt(8)",
+			expr: NewNthRootExpression(
+				NewConstant(8),
+				3,
+			),
+			expected: []Expression{
+				NewNthRootExpression(
+					NewConstant(8),
+					3,
+				),
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -520,6 +593,61 @@ func TestIsMonomial(t *testing.T) {
 			),
 			expected: true,
 		},
+		{
+			name: "power expression: x^2",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(2),
+			),
+			expected: true,
+		},
+		{
+			name: "power with coefficient: 3 * x^2",
+			expr: NewMultiplyExpression(
+				NewConstant(3),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "square root: sqrt(x)",
+			expr: NewSqrtExpression(
+				NewVariable("x"),
+			),
+			expected: true,
+		},
+		{
+			name: "nth root: cbrt(x)",
+			expr: NewNthRootExpression(
+				NewVariable("x"),
+				3,
+			),
+			expected: true,
+		},
+		{
+			name: "coefficient with sqrt: 2 * sqrt(x)",
+			expr: NewMultiplyExpression(
+				NewConstant(2),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "power and variable: x^2 * y",
+			expr: NewMultiplyExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewVariable("y"),
+			),
+			expected: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -705,6 +833,46 @@ func TestGetCoefficient(t *testing.T) {
 				NewVariable("x"),
 			),
 			expected: 6,
+			hasCoeff: true,
+		},
+		{
+			name: "power expression: x^2",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(2),
+			),
+			expected: 1,
+			hasCoeff: true,
+		},
+		{
+			name: "coefficient with power: 4 * x^3",
+			expr: NewMultiplyExpression(
+				NewConstant(4),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(3),
+				),
+			),
+			expected: 4,
+			hasCoeff: true,
+		},
+		{
+			name: "sqrt expression: sqrt(x)",
+			expr: NewSqrtExpression(
+				NewVariable("x"),
+			),
+			expected: 1,
+			hasCoeff: true,
+		},
+		{
+			name: "coefficient with sqrt: 3 * sqrt(x)",
+			expr: NewMultiplyExpression(
+				NewConstant(3),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			),
+			expected: 3,
 			hasCoeff: true,
 		},
 	}
