@@ -11,16 +11,19 @@ func TestSplitToTerms(t *testing.T) {
 		expr     Expression
 		expected []Expression
 	}{
+		// 単一の定数は既に項なので、それ自体だけが分解結果となる。
 		{
 			name:     "single constant",
 			expr:     NewConstant(5),
 			expected: []Expression{NewConstant(5)},
 		},
+		// 単一の変数は多項式の1項であるため、そのまま1つの項として扱われる。
 		{
 			name:     "single variable",
 			expr:     NewVariable("x"),
 			expected: []Expression{NewVariable("x")},
 		},
+		// 加算は項の和なので、2+3 は2つの項 (2 と 3) に分解される。
 		{
 			name: "simple addition: 2 + 3",
 			expr: NewAddExpression(
@@ -32,6 +35,7 @@ func TestSplitToTerms(t *testing.T) {
 				NewConstant(3),
 			},
 		},
+		// 加算のネストは分解すると平坦化できる： (1+2)+3 -> 1,2,3 の3項。
 		{
 			name: "nested addition: (1 + 2) + 3",
 			expr: NewAddExpression(
@@ -47,6 +51,7 @@ func TestSplitToTerms(t *testing.T) {
 				NewConstant(3),
 			},
 		},
+		// 多重にネストされた加算も平坦化でき、各定数が独立した項となる。
 		{
 			name: "deeply nested: ((1 + 2) + 3) + 4",
 			expr: NewAddExpression(
@@ -66,6 +71,8 @@ func TestSplitToTerms(t *testing.T) {
 				NewConstant(4),
 			},
 		},
+		// 各項が乗法式であっても加算の被演算子として独立した項として扱う。
+		// したがって 2*x + 3*y は項 2*x と 3*y に分解される。
 		{
 			name: "addition with multiplication: 2*x + 3*y",
 			expr: NewAddExpression(
@@ -89,6 +96,8 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		// 左右の加算をそれぞれ展開し、全体を項列に平坦化する。
+		// (x + 2*y) + (3 + z) -> x, 2*y, 3, z
 		{
 			name: "complex expression: (x + 2*y) + (3 + z)",
 			expr: NewAddExpression(
@@ -114,6 +123,8 @@ func TestSplitToTerms(t *testing.T) {
 				NewVariable("z"),
 			},
 		},
+		// 加算が存在しない場合、式全体が単一の項と見なされる。
+		// したがって乗法のみの 2*3 は1つの項として返される。
 		{
 			name: "multiplication only: 2 * 3",
 			expr: NewMultiplyExpression(
@@ -127,6 +138,7 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		// 除法のみも加算を含まないため単一項として扱われる。
 		{
 			name: "division only: 10 / 2",
 			expr: NewDivideExpression(
@@ -140,6 +152,8 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		// 減算は2項の演算だが、ここでは加算同様に分解せず式全体を1項として扱う。
+		// （別途分解ルールがあれば変わるが、現在の期待は単一項）
 		{
 			name: "subtraction only: 5 - 3",
 			expr: NewSubtractExpression(
@@ -153,6 +167,7 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		// べき乗は項としてそのまま扱われる。x^2 + x は項 x^2 と項 x に分離される。
 		{
 			name: "power expression in addition: x^2 + x",
 			expr: NewAddExpression(
@@ -170,6 +185,7 @@ func TestSplitToTerms(t *testing.T) {
 				NewVariable("x"),
 			},
 		},
+		// 根号も式として独立した項になり得る。x + sqrt(x) は項 x と項 sqrt(x) に分解される。
 		{
 			name: "sqrt in polynomial: x + sqrt(x)",
 			expr: NewAddExpression(
@@ -185,6 +201,8 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		// 典型的な多項式の各項は係数とべき乗の積として表されるため、
+		// 3*x^2 + 2*x + 1 は項 (3*x^2), (2*x), (1) に分解される。
 		{
 			name: "complex polynomial with power: 3*x^2 + 2*x + 1",
 			expr: NewAddExpression(
