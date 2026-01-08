@@ -44,7 +44,7 @@ func IsMonomial(node Expression) bool {
 	case *PowerExpression:
 		return true
 	case *SqrtExpression:
-		return true
+		return false
 	default:
 		return false
 	}

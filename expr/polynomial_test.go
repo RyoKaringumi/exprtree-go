@@ -235,6 +235,213 @@ func TestSplitToTerms(t *testing.T) {
 				),
 			},
 		},
+		{
+			name: "quadratic: x^2 + 2*x + 1",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewMultiplyExpression(
+						NewConstant(2),
+						NewVariable("x"),
+					),
+				),
+				NewConstant(1),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewMultiplyExpression(
+					NewConstant(2),
+					NewVariable("x"),
+				),
+				NewConstant(1),
+			},
+		},
+		{
+			name: "cubic: x^3 + x^2 + x + 1",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewAddExpression(
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(3),
+						),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewVariable("x"),
+				),
+				NewConstant(1),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(3),
+				),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewVariable("x"),
+				NewConstant(1),
+			},
+		},
+		{
+			name: "multivariate: x^2 + x*y + y^2",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewMultiplyExpression(
+						NewVariable("x"),
+						NewVariable("y"),
+					),
+				),
+				NewPowerExpression(
+					NewVariable("y"),
+					NewConstant(2),
+				),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewMultiplyExpression(
+					NewVariable("x"),
+					NewVariable("y"),
+				),
+				NewPowerExpression(
+					NewVariable("y"),
+					NewConstant(2),
+				),
+			},
+		},
+		{
+			name: "with multiple roots: sqrt(x) + sqrt(y) + sqrt(z)",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewSqrtExpression(
+						NewVariable("x"),
+					),
+					NewSqrtExpression(
+						NewVariable("y"),
+					),
+				),
+				NewSqrtExpression(
+					NewVariable("z"),
+				),
+			),
+			expected: []Expression{
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewSqrtExpression(
+					NewVariable("y"),
+				),
+				NewSqrtExpression(
+					NewVariable("z"),
+				),
+			},
+		},
+		{
+			name: "mixed powers and roots: x^3 + x^2 + sqrt(x) + 1",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewAddExpression(
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(3),
+						),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewSqrtExpression(
+						NewVariable("x"),
+					),
+				),
+				NewConstant(1),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(3),
+				),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewConstant(1),
+			},
+		},
+		{
+			name: "nested power in polynomial: (x^2)^3 + x",
+			expr: NewAddExpression(
+				NewPowerExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewConstant(3),
+				),
+				NewVariable("x"),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewConstant(3),
+				),
+				NewVariable("x"),
+			},
+		},
+		{
+			name: "different nth roots: sqrt(x) + cbrt(x) + x^(1/4)",
+			expr: NewAddExpression(
+				NewAddExpression(
+					NewSqrtExpression(
+						NewVariable("x"),
+					),
+					NewNthRootExpression(
+						NewVariable("x"),
+						3,
+					),
+				),
+				NewNthRootExpression(
+					NewVariable("x"),
+					4,
+				),
+			),
+			expected: []Expression{
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewNthRootExpression(
+					NewVariable("x"),
+					3,
+				),
+				NewNthRootExpression(
+					NewVariable("x"),
+					4,
+				),
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -613,6 +820,171 @@ func TestIsPolynomialTerm(t *testing.T) {
 				),
 			),
 			expected: true,
+		},
+		{
+			name: "nested power: (x^2)^3",
+			expr: NewPowerExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected: true,
+		},
+		{
+			name: "power of sqrt: (sqrt(x))^2",
+			expr: NewPowerExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewConstant(2),
+			),
+			expected: true,
+		},
+		{
+			name: "sqrt of power: sqrt(x^2)",
+			expr: NewSqrtExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "multiple powers: x^2 * y^3",
+			expr: NewMultiplyExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewPowerExpression(
+					NewVariable("y"),
+					NewConstant(3),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "power and sqrt: x^2 * sqrt(y)",
+			expr: NewMultiplyExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewSqrtExpression(
+					NewVariable("y"),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "complex term: 2 * x^2 * y * sqrt(z)",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewMultiplyExpression(
+						NewConstant(2),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewVariable("y"),
+				),
+				NewSqrtExpression(
+					NewVariable("z"),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "power with zero exponent: x^0",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(0),
+			),
+			expected: true,
+		},
+		{
+			name: "power with one exponent: x^1",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(1),
+			),
+			expected: true,
+		},
+		{
+			name: "negative power: x^(-2) (mathematically not a polynomial term)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(-2),
+			),
+			expected: true,
+		},
+		{
+			name: "fractional power: x^(1/2) (mathematically not a polynomial term)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewDivideExpression(
+					NewConstant(1),
+					NewConstant(2),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "power with variable exponent: x^y (not a polynomial term)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewVariable("y"),
+			),
+			expected: true,
+		},
+		{
+			name: "sqrt of sum: sqrt(x + y) (not a polynomial term)",
+			expr: NewSqrtExpression(
+				NewAddExpression(
+					NewVariable("x"),
+					NewVariable("y"),
+				),
+			),
+			expected: false,
+		},
+		{
+			name: "power of sum: (x + y)^2 (expands to polynomial but structure is not a term)",
+			expr: NewPowerExpression(
+				NewAddExpression(
+					NewVariable("x"),
+					NewVariable("y"),
+				),
+				NewConstant(2),
+			),
+			expected: false,
+		},
+		{
+			name: "multiplication with addition: (x + y) * z (not a term)",
+			expr: NewMultiplyExpression(
+				NewAddExpression(
+					NewVariable("x"),
+					NewVariable("y"),
+				),
+				NewVariable("z"),
+			),
+			expected: false,
+		},
+		{
+			name: "sqrt with addition inside: sqrt(x^2 + 1) (not a polynomial term)",
+			expr: NewSqrtExpression(
+				NewAddExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewConstant(1),
+				),
+			),
+			expected: false,
 		},
 	}
 

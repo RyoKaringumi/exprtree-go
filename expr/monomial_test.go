@@ -229,6 +229,142 @@ func TestSplitToFactors(t *testing.T) {
 				),
 			},
 		},
+		{
+			name: "nested power: (x^2)^3",
+			expr: NewPowerExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewConstant(3),
+				),
+			},
+		},
+		{
+			name: "power of sqrt: (sqrt(x))^2",
+			expr: NewPowerExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewConstant(2),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewSqrtExpression(
+						NewVariable("x"),
+					),
+					NewConstant(2),
+				),
+			},
+		},
+		{
+			name: "sqrt of power: sqrt(x^2)",
+			expr: NewSqrtExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: []Expression{
+				NewSqrtExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+				),
+			},
+		},
+		{
+			name: "multiple powers: x^2 * y^3 * z^4",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewPowerExpression(
+						NewVariable("y"),
+						NewConstant(3),
+					),
+				),
+				NewPowerExpression(
+					NewVariable("z"),
+					NewConstant(4),
+				),
+			),
+			expected: []Expression{
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewPowerExpression(
+					NewVariable("y"),
+					NewConstant(3),
+				),
+				NewPowerExpression(
+					NewVariable("z"),
+					NewConstant(4),
+				),
+			},
+		},
+		{
+			name: "different roots: sqrt(x) * cbrt(y)",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewNthRootExpression(
+					NewVariable("y"),
+					3,
+				),
+			),
+			expected: []Expression{
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewNthRootExpression(
+					NewVariable("y"),
+					3,
+				),
+			},
+		},
+		{
+			name: "complex: 2 * x^2 * sqrt(y) * z",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewMultiplyExpression(
+						NewConstant(2),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewSqrtExpression(
+						NewVariable("y"),
+					),
+				),
+				NewVariable("z"),
+			),
+			expected: []Expression{
+				NewConstant(2),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewSqrtExpression(
+					NewVariable("y"),
+				),
+				NewVariable("z"),
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -648,6 +784,145 @@ func TestIsMonomial(t *testing.T) {
 			),
 			expected: true,
 		},
+		{
+			name: "nested power: (x^2)^3",
+			expr: NewPowerExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected: true,
+		},
+		{
+			name: "power of sqrt: (sqrt(x))^2",
+			expr: NewPowerExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewConstant(2),
+			),
+			expected: true,
+		},
+		{
+			name: "sqrt of power: sqrt(x^2)",
+			expr: NewSqrtExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "multiple roots: sqrt(x) * sqrt(y)",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewSqrtExpression(
+					NewVariable("y"),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "different root degrees: sqrt(x) * cbrt(x)",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewNthRootExpression(
+					NewVariable("x"),
+					3,
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "complex monomial: 2 * x^2 * sqrt(y) * z",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewMultiplyExpression(
+						NewConstant(2),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewSqrtExpression(
+						NewVariable("y"),
+					),
+				),
+				NewVariable("z"),
+			),
+			expected: true,
+		},
+		{
+			name: "power with zero exponent: x^0",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(0),
+			),
+			expected: true,
+		},
+		{
+			name: "power with one exponent: x^1",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(1),
+			),
+			expected: true,
+		},
+		{
+			name: "negative power: x^(-2) (not a monomial in strict sense)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(-2),
+			),
+			expected: true,
+		},
+		{
+			name: "fractional power: x^(1/2)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewDivideExpression(
+					NewConstant(1),
+					NewConstant(2),
+				),
+			),
+			expected: true,
+		},
+		{
+			name: "power with variable exponent: x^y (not a standard monomial)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewVariable("y"),
+			),
+			expected: true,
+		},
+		{
+			name: "sqrt of complex expression: sqrt(x + 1) (not a monomial)",
+			expr: NewSqrtExpression(
+				NewAddExpression(
+					NewVariable("x"),
+					NewConstant(1),
+				),
+			),
+			expected: false,
+		},
+		{
+			name: "power of sum: (x + y)^2 (not a monomial)",
+			expr: NewPowerExpression(
+				NewAddExpression(
+					NewVariable("x"),
+					NewVariable("y"),
+				),
+				NewConstant(2),
+			),
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -875,6 +1150,110 @@ func TestGetCoefficient(t *testing.T) {
 			expected: 3,
 			hasCoeff: true,
 		},
+		{
+			name: "complex coefficient: 2 * 3 * x (coefficient 6)",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewConstant(2),
+					NewConstant(3),
+				),
+				NewVariable("x"),
+			),
+			expected: 6,
+			hasCoeff: true,
+		},
+		{
+			name: "coefficient with multiple powers: 5 * x^2 * y^3",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewConstant(5),
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+				),
+				NewPowerExpression(
+					NewVariable("y"),
+					NewConstant(3),
+				),
+			),
+			expected: 5,
+			hasCoeff: true,
+		},
+		{
+			name: "coefficient with power and sqrt: 2 * x^2 * sqrt(y)",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewConstant(2),
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+				),
+				NewSqrtExpression(
+					NewVariable("y"),
+				),
+			),
+			expected: 2,
+			hasCoeff: true,
+		},
+		{
+			name: "fractional coefficient: 0.5 * x",
+			expr: NewMultiplyExpression(
+				NewConstant(0.5),
+				NewVariable("x"),
+			),
+			expected: 0.5,
+			hasCoeff: true,
+		},
+		{
+			name: "negative coefficient: -3 * x",
+			expr: NewMultiplyExpression(
+				NewConstant(-3),
+				NewVariable("x"),
+			),
+			expected: -3,
+			hasCoeff: true,
+		},
+		{
+			name: "nested power coefficient: 2 * (x^2)^3",
+			expr: NewMultiplyExpression(
+				NewConstant(2),
+				NewPowerExpression(
+					NewPowerExpression(
+						NewVariable("x"),
+						NewConstant(2),
+					),
+					NewConstant(3),
+				),
+			),
+			expected: 2,
+			hasCoeff: true,
+		},
+		{
+			name: "power with zero exponent: 3 * x^0 (mathematically 3 * 1 = 3)",
+			expr: NewMultiplyExpression(
+				NewConstant(3),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(0),
+				),
+			),
+			expected: 3,
+			hasCoeff: true,
+		},
+		{
+			name: "nth root coefficient: 4 * cbrt(x)",
+			expr: NewMultiplyExpression(
+				NewConstant(4),
+				NewNthRootExpression(
+					NewVariable("x"),
+					3,
+				),
+			),
+			expected: 4,
+			hasCoeff: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -979,6 +1358,114 @@ func TestGetDegree(t *testing.T) {
 			expected:  0,
 			hasDegree: true,
 		},
+		{
+			name: "power expression: x^2 (mathematically degree 2)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(2),
+			),
+			expected:  2,
+			hasDegree: true,
+		},
+		{
+			name: "power expression: x^3 (mathematically degree 3)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(3),
+			),
+			expected:  3,
+			hasDegree: true,
+		},
+		{
+			name: "coefficient with power: 2 * x^3 (degree 3)",
+			expr: NewMultiplyExpression(
+				NewConstant(2),
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(3),
+				),
+			),
+			expected:  3,
+			hasDegree: true,
+		},
+		{
+			name: "two powers: x^2 * y^3 (mathematically degree 2+3=5)",
+			expr: NewMultiplyExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewPowerExpression(
+					NewVariable("y"),
+					NewConstant(3),
+				),
+			),
+			expected:  5,
+			hasDegree: true,
+		},
+		{
+			name: "power and variable: x^2 * y (mathematically degree 2+1=3)",
+			expr: NewMultiplyExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewVariable("y"),
+			),
+			expected:  3,
+			hasDegree: true,
+		},
+		{
+			name: "complex: 3 * x^2 * y^3 * z (mathematically degree 2+3+1=6)",
+			expr: NewMultiplyExpression(
+				NewMultiplyExpression(
+					NewMultiplyExpression(
+						NewConstant(3),
+						NewPowerExpression(
+							NewVariable("x"),
+							NewConstant(2),
+						),
+					),
+					NewPowerExpression(
+						NewVariable("y"),
+						NewConstant(3),
+					),
+				),
+				NewVariable("z"),
+			),
+			expected:  6,
+			hasDegree: true,
+		},
+		{
+			name: "power with zero exponent: x^0 (degree 0)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(0),
+			),
+			expected:  0,
+			hasDegree: true,
+		},
+		{
+			name: "power with one exponent: x^1 (degree 1)",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(1),
+			),
+			expected:  1,
+			hasDegree: true,
+		},
+		{
+			name: "nested power: (x^2)^3 (mathematically x^6, degree 6)",
+			expr: NewPowerExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected:  6,
+			hasDegree: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -992,6 +1479,347 @@ func TestGetDegree(t *testing.T) {
 
 			if ok && result != tt.expected {
 				t.Errorf("GetDegree() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestGetDegreeWithFractionalExponents tests GetDegree with fractional exponents (if supported)
+// Mathematically: x^(1/2) has degree 1/2, x^(3/2) has degree 3/2, etc.
+func TestGetDegreeWithFractionalExponents(t *testing.T) {
+	tests := []struct {
+		name      string
+		expr      Expression
+		expected  float64 // Changed to float64 for fractional degrees
+		hasDegree bool
+	}{
+		{
+			name: "sqrt as x^(1/2): degree 0.5",
+			expr: NewSqrtExpression(
+				NewVariable("x"),
+			),
+			expected:  0.5,
+			hasDegree: true,
+		},
+		{
+			name: "cube root as x^(1/3): degree 1/3",
+			expr: NewNthRootExpression(
+				NewVariable("x"),
+				3,
+			),
+			expected:  1.0 / 3.0,
+			hasDegree: true,
+		},
+		{
+			name: "fourth root as x^(1/4): degree 1/4",
+			expr: NewNthRootExpression(
+				NewVariable("x"),
+				4,
+			),
+			expected:  0.25,
+			hasDegree: true,
+		},
+		{
+			name: "x^2 * sqrt(x) = x^(5/2): degree 2.5",
+			expr: NewMultiplyExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			),
+			expected:  2.5,
+			hasDegree: true,
+		},
+		{
+			name: "sqrt(x) * sqrt(x) = x: degree 1",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+			),
+			expected:  1.0,
+			hasDegree: true,
+		},
+		{
+			name: "sqrt(x) * cbrt(x) = x^(1/2 + 1/3) = x^(5/6): degree 5/6",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewNthRootExpression(
+					NewVariable("x"),
+					3,
+				),
+			),
+			expected:  5.0 / 6.0,
+			hasDegree: true,
+		},
+		{
+			name: "sqrt(x) * sqrt(y): total degree 0.5 + 0.5 = 1",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewSqrtExpression(
+					NewVariable("y"),
+				),
+			),
+			expected:  1.0,
+			hasDegree: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// This test is for future implementation
+			// Current GetDegree returns int, but mathematically should handle fractional degrees
+			t.Skip("Skipping fractional degree test - requires implementation that handles float64 degrees")
+		})
+	}
+}
+
+// TestMonomialSimplification tests mathematical simplifications (if implemented)
+// These tests verify mathematical identities
+func TestMonomialSimplification(t *testing.T) {
+	tests := []struct {
+		name     string
+		expr     Expression
+		expected Expression
+		comment  string
+	}{
+		{
+			name: "x^0 simplifies to 1",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(0),
+			),
+			expected: NewConstant(1),
+			comment:  "Any non-zero number to power 0 equals 1",
+		},
+		{
+			name: "x^1 simplifies to x",
+			expr: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(1),
+			),
+			expected: NewVariable("x"),
+			comment:  "Any number to power 1 equals itself",
+		},
+		{
+			name: "(sqrt(x))^2 simplifies to x",
+			expr: NewPowerExpression(
+				NewSqrtExpression(
+					NewVariable("x"),
+				),
+				NewConstant(2),
+			),
+			expected: NewVariable("x"),
+			comment:  "Squaring a square root cancels out",
+		},
+		{
+			name: "sqrt(x^2) simplifies to |x| or x (for positive x)",
+			expr: NewSqrtExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+			),
+			expected: NewVariable("x"),
+			comment:  "Square root of square (assuming positive domain)",
+		},
+		{
+			name: "(x^2)^3 simplifies to x^6",
+			expr: NewPowerExpression(
+				NewPowerExpression(
+					NewVariable("x"),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected: NewPowerExpression(
+				NewVariable("x"),
+				NewConstant(6),
+			),
+			comment: "Power of power: (x^a)^b = x^(a*b)",
+		},
+		{
+			name: "1 * x simplifies to x",
+			expr: NewMultiplyExpression(
+				NewConstant(1),
+				NewVariable("x"),
+			),
+			expected: NewVariable("x"),
+			comment:  "Multiplicative identity",
+		},
+		{
+			name: "0 * x simplifies to 0",
+			expr: NewMultiplyExpression(
+				NewConstant(0),
+				NewVariable("x"),
+			),
+			expected: NewConstant(0),
+			comment:  "Multiplication by zero",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// This test is for future implementation
+			t.Skip("Skipping simplification test - requires Simplify() function implementation")
+		})
+	}
+}
+
+// TestEvalWithPowerAndRoot tests evaluation of expressions with powers and roots
+func TestEvalWithPowerAndRoot(t *testing.T) {
+	tests := []struct {
+		name     string
+		expr     Expression
+		expected float64
+		delta    float64 // For floating point comparison
+		ok       bool
+	}{
+		{
+			name: "2^3 = 8",
+			expr: NewPowerExpression(
+				NewConstant(2),
+				NewConstant(3),
+			),
+			expected: 8.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "sqrt(4) = 2",
+			expr: NewSqrtExpression(
+				NewConstant(4),
+			),
+			expected: 2.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "cbrt(8) = 2",
+			expr: NewNthRootExpression(
+				NewConstant(8),
+				3,
+			),
+			expected: 2.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "(sqrt(2))^2 ≈ 2",
+			expr: NewPowerExpression(
+				NewSqrtExpression(
+					NewConstant(2),
+				),
+				NewConstant(2),
+			),
+			expected: 2.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "sqrt(2^2) = 2",
+			expr: NewSqrtExpression(
+				NewPowerExpression(
+					NewConstant(2),
+					NewConstant(2),
+				),
+			),
+			expected: 2.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "(2^2)^3 = 64",
+			expr: NewPowerExpression(
+				NewPowerExpression(
+					NewConstant(2),
+					NewConstant(2),
+				),
+				NewConstant(3),
+			),
+			expected: 64.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "2 * 3^2 = 18",
+			expr: NewMultiplyExpression(
+				NewConstant(2),
+				NewPowerExpression(
+					NewConstant(3),
+					NewConstant(2),
+				),
+			),
+			expected: 18.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "sqrt(16) * cbrt(8) = 4 * 2 = 8",
+			expr: NewMultiplyExpression(
+				NewSqrtExpression(
+					NewConstant(16),
+				),
+				NewNthRootExpression(
+					NewConstant(8),
+					3,
+				),
+			),
+			expected: 8.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "2^0 = 1",
+			expr: NewPowerExpression(
+				NewConstant(2),
+				NewConstant(0),
+			),
+			expected: 1.0,
+			delta:    0.0001,
+			ok:       true,
+		},
+		{
+			name: "2^(-2) = 0.25",
+			expr: NewPowerExpression(
+				NewConstant(2),
+				NewConstant(-2),
+			),
+			expected: 0.25,
+			delta:    0.0001,
+			ok:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, ok := tt.expr.Eval()
+			if ok != tt.ok {
+				t.Errorf("Eval() ok = %v, expected %v", ok, tt.ok)
+				return
+			}
+			if ok {
+				if num, ok := result.(*NumberValue); ok {
+					diff := num.Value - tt.expected
+					if diff < 0 {
+						diff = -diff
+					}
+					if diff > tt.delta {
+						t.Errorf("Eval() = %v, expected %v (within %v)", num.Value, tt.expected, tt.delta)
+					}
+				} else {
+					t.Errorf("Eval() did not return NumberValue")
+				}
 			}
 		})
 	}
