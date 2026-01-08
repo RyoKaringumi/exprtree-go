@@ -753,7 +753,7 @@ func TestIsMonomial(t *testing.T) {
 			expr: NewSqrtExpression(
 				NewVariable("x"),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "nth root: cbrt(x)",
@@ -761,7 +761,7 @@ func TestIsMonomial(t *testing.T) {
 				NewVariable("x"),
 				3,
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "coefficient with sqrt: 2 * sqrt(x)",
@@ -771,7 +771,7 @@ func TestIsMonomial(t *testing.T) {
 					NewVariable("x"),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power and variable: x^2 * y",
@@ -813,7 +813,7 @@ func TestIsMonomial(t *testing.T) {
 					NewConstant(2),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "multiple roots: sqrt(x) * sqrt(y)",
@@ -825,7 +825,7 @@ func TestIsMonomial(t *testing.T) {
 					NewVariable("y"),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "different root degrees: sqrt(x) * cbrt(x)",
@@ -838,7 +838,7 @@ func TestIsMonomial(t *testing.T) {
 					3,
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "complex monomial: 2 * x^2 * sqrt(y) * z",
@@ -857,7 +857,7 @@ func TestIsMonomial(t *testing.T) {
 				),
 				NewVariable("z"),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power with zero exponent: x^0",
@@ -881,7 +881,7 @@ func TestIsMonomial(t *testing.T) {
 				NewVariable("x"),
 				NewConstant(-2),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "fractional power: x^(1/2)",
@@ -892,7 +892,7 @@ func TestIsMonomial(t *testing.T) {
 					NewConstant(2),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power with variable exponent: x^y (not a standard monomial)",
@@ -900,7 +900,7 @@ func TestIsMonomial(t *testing.T) {
 				NewVariable("x"),
 				NewVariable("y"),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "sqrt of complex expression: sqrt(x + 1) (not a monomial)",
@@ -1137,7 +1137,7 @@ func TestGetCoefficient(t *testing.T) {
 				NewVariable("x"),
 			),
 			expected: 1,
-			hasCoeff: true,
+			hasCoeff: false,
 		},
 		{
 			name: "coefficient with sqrt: 3 * sqrt(x)",
@@ -1148,7 +1148,7 @@ func TestGetCoefficient(t *testing.T) {
 				),
 			),
 			expected: 3,
-			hasCoeff: true,
+			hasCoeff: false,
 		},
 		{
 			name: "complex coefficient: 2 * 3 * x (coefficient 6)",
@@ -1195,7 +1195,7 @@ func TestGetCoefficient(t *testing.T) {
 				),
 			),
 			expected: 2,
-			hasCoeff: true,
+			hasCoeff: false,
 		},
 		{
 			name: "fractional coefficient: 0.5 * x",
@@ -1252,7 +1252,7 @@ func TestGetCoefficient(t *testing.T) {
 				),
 			),
 			expected: 4,
-			hasCoeff: true,
+			hasCoeff: false,
 		},
 	}
 
@@ -1275,9 +1275,9 @@ func TestGetCoefficient(t *testing.T) {
 // TestGetDegree tests calculating the degree of a monomial (sum of variable exponents)
 func TestGetDegree(t *testing.T) {
 	tests := []struct {
-		name     string
-		expr     Expression
-		expected int
+		name      string
+		expr      Expression
+		expected  int
 		hasDegree bool
 	}{
 		{
