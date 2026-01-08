@@ -801,7 +801,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 			expr: NewSqrtExpression(
 				NewVariable("x"),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "nth root: cbrt(8)",
@@ -819,7 +819,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 					NewVariable("x"),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "nested power: (x^2)^3",
@@ -850,7 +850,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 					NewConstant(2),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "multiple powers: x^2 * y^3",
@@ -877,7 +877,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 					NewVariable("y"),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "complex term: 2 * x^2 * y * sqrt(z)",
@@ -896,7 +896,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 					NewVariable("z"),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power with zero exponent: x^0",
@@ -920,7 +920,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 				NewVariable("x"),
 				NewConstant(-2),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "fractional power: x^(1/2) (mathematically not a polynomial term)",
@@ -931,7 +931,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 					NewConstant(2),
 				),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power with variable exponent: x^y (not a polynomial term)",
@@ -939,7 +939,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 				NewVariable("x"),
 				NewVariable("y"),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "sqrt of sum: sqrt(x + y) (not a polynomial term)",
