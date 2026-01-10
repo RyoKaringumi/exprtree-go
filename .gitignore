@@ -1,0 +1,28 @@
+# Goのビルド成果物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# テストバイナリ
+*.test
+
+# 出力ファイル
+*.out
+
+# ビルドディレクトリ
+/build/
+/bin/
+/dist/
+
+# IDEファイル
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS固有のファイル
+.DS_Store
+Thumbs.db
