@@ -38,3 +38,17 @@ func RationalAdd(a, b *RationalValue) *RationalValue {
 		Denominator: commonDenom,
 	}
 }
+
+func CommonDenominator(a, b *RationalValue) (*RationalValue, *RationalValue) {
+	commonDenom := LCM(a.Denominator, b.Denominator)
+	aScale := commonDenom / a.Denominator
+	bScale := commonDenom / b.Denominator
+
+	return &RationalValue{
+			Numerator:   a.Numerator * aScale,
+			Denominator: commonDenom,
+		}, &RationalValue{
+			Numerator:   b.Numerator * bScale,
+			Denominator: commonDenom,
+		}
+}
