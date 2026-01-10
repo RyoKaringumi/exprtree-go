@@ -21,3 +21,17 @@ func NewRational(numerator int64, denominator int64) (*RationalValue, error) {
 		Denominator: denominator,
 	}, nil
 }
+
+func RationalAdd(a, b *RationalValue) *RationalValue {
+	if a.Denominator == b.Denominator {
+		return &RationalValue{
+			Numerator:   a.Numerator + b.Numerator,
+			Denominator: a.Denominator,
+		}
+	}
+	commonDenom := a.Denominator * b.Denominator
+	return &RationalValue{
+		Numerator:   a.Numerator*b.Denominator + b.Numerator*a.Denominator,
+		Denominator: commonDenom,
+	}
+}
