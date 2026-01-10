@@ -22,6 +22,49 @@ go test -v
 go run .
 ```
 
+## Claude Code への開発指示
+
+### 実装方針
+
+**重要**: 明示的に指示がない限り、Claude Codeは**テストコードのみ**を実装してください。
+
+- **テストコードの実装**: テストケースの作成、テストシナリオの設計
+- **実際の実装**: ユーザー自身が作成します
+
+### 数学的正しさの優先
+
+**絶対原則**: テストコードおよびすべての数学的検証において、**数学的正しさを最優先**してください。
+
+- 浮動小数点数の誤差を考慮した適切なテスト
+- 境界値、エッジケースの徹底的な検証
+- 数学的に正確な期待値の使用
+- 不正確な近似や妥協は避ける
+
+例：
+```go
+// ✅ 良い例: 数学的に正確なテスト
+func TestRationalAdd(t *testing.T) {
+    // 1/2 + 1/3 = 5/6 (正確な有理数演算)
+    r1 := NewRational(1, 2)
+    r2 := NewRational(1, 3)
+    result := RationalAdd(r1, r2)
+    expected := NewRational(5, 6)
+    if !RationalEqual(result, expected) {
+        t.Errorf("Expected %v, got %v", expected, result)
+    }
+}
+
+// ❌ 悪い例: 浮動小数点数による不正確なテスト
+func TestRationalAdd(t *testing.T) {
+    r1 := NewRational(1, 2)
+    r2 := NewRational(1, 3)
+    result := RationalAdd(r1, r2)
+    if result.ToFloat() != 0.833333 {  // 不正確な近似値
+        t.Errorf("Failed")
+    }
+}
+```
+
 ## アーキテクチャ
 
 ### コア設計パターン
