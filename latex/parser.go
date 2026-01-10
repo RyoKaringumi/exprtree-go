@@ -54,6 +54,15 @@ type CommandNode struct {
 
 func (n *CommandNode) NodeType() string { return "CommandNode" }
 
+// EqualNode represents an equality expression
+type EqualNode struct {
+	Left     LatexNode
+	Operator Token
+	Right    LatexNode
+}
+
+func (n *EqualNode) NodeType() string { return "EqualNode" }
+
 // Parser parses tokens into a LaTeX AST
 type Parser struct {
 	lexer        *Lexer
@@ -66,13 +75,15 @@ type Parser struct {
 const (
 	_ int = iota
 	LOWEST
-	SUM     // +, -
-	PRODUCT // *, /
-	POWER   // ^
+	EQUALITY // =
+	SUM      // +, -
+	PRODUCT  // *, /
+	POWER    // ^
 )
 
 // precedences maps token types to their precedence
 var precedences = map[TokenType]int{
+	EQUAL:    EQUALITY,
 	PLUS:     SUM,
 	MINUS:    SUM,
 	MULTIPLY: PRODUCT,
@@ -133,7 +144,7 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 	// Parse infix expressions with precedence climbing
 	for p.peekToken.Type != EOF && precedence < p.peekPrecedence() {
 		switch p.peekToken.Type {
-		case PLUS, MINUS, MULTIPLY, DIVIDE, CARET:
+		case PLUS, MINUS, MULTIPLY, DIVIDE, CARET, EQUAL:
 			p.nextToken()
 			left = p.parseBinaryOp(left)
 		default:
@@ -222,22 +233,32 @@ func (p *Parser) parseCommand() LatexNode {
 
 // parseBinaryOp parses a binary operation
 func (p *Parser) parseBinaryOp(left LatexNode) LatexNode {
-	node := &BinaryOpNode{
-		Left:     left,
-		Operator: p.currentToken,
-	}
-
+	operator := p.currentToken
 	precedence := p.currentPrecedence()
 	p.nextToken()
 
+	var right LatexNode
 	// Right-associative for power (^), left-associative for others
-	if node.Operator.Type == CARET {
-		node.Right = p.parseExpression(precedence - 1) // Right-associative: use precedence - 1
+	if operator.Type == CARET {
+		right = p.parseExpression(precedence - 1) // Right-associative: use precedence - 1
 	} else {
-		node.Right = p.parseExpression(precedence) // Left-associative: use same precedence
+		right = p.parseExpression(precedence) // Left-associative: use same precedence
 	}
 
-	return node
+	// Create EqualNode for equality, BinaryOpNode for other operators
+	if operator.Type == EQUAL {
+		return &EqualNode{
+			Left:     left,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+
+	return &BinaryOpNode{
+		Left:     left,
+		Operator: operator,
+		Right:    right,
+	}
 }
 
 // expectPeek checks if the next token is of the expected type

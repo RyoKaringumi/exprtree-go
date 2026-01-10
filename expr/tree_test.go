@@ -859,3 +859,350 @@ func TestNthRootNValue(t *testing.T) {
 		t.Errorf("Expected N to be 2.0 for NewSqrtExpression, got %f", sqrtExpr.N)
 	}
 }
+
+// ===== BoolValue Tests =====
+
+func TestBoolValueEval(t *testing.T) {
+	// Test BoolValue evaluation
+	boolTrue := &BoolValue{Value: true}
+	resultTrue, okTrue := boolTrue.Eval()
+	if !okTrue {
+		t.Errorf("Expected evaluation to succeed for BoolValue")
+	}
+	if b, ok := resultTrue.(*BoolValue); ok {
+		if !b.Value {
+			t.Errorf("Expected true, got false")
+		}
+	} else {
+		t.Errorf("Expected BoolValue")
+	}
+
+	boolFalse := &BoolValue{Value: false}
+	resultFalse, okFalse := boolFalse.Eval()
+	if !okFalse {
+		t.Errorf("Expected evaluation to succeed for BoolValue")
+	}
+	if b, ok := resultFalse.(*BoolValue); ok {
+		if b.Value {
+			t.Errorf("Expected false, got true")
+		}
+	} else {
+		t.Errorf("Expected BoolValue")
+	}
+}
+
+// ===== EqualExpression Tests =====
+
+func TestEqualExpressionTrue(t *testing.T) {
+	// 5 = 5 should be true
+	left := &Constant{Value: NumberValue{Value: 5.0}}
+	right := &Constant{Value: NumberValue{Value: 5.0}}
+	equal := NewEqualExpression(left, right)
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if b, ok := result.(*BoolValue); ok {
+		if !b.Value {
+			t.Errorf("Expected true for 5 = 5")
+		}
+	} else {
+		t.Errorf("Expected BoolValue, got %T", result)
+	}
+}
+
+func TestEqualExpressionFalse(t *testing.T) {
+	// 2 = 3 should be false
+	left := &Constant{Value: NumberValue{Value: 2.0}}
+	right := &Constant{Value: NumberValue{Value: 3.0}}
+	equal := NewEqualExpression(left, right)
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if b, ok := result.(*BoolValue); ok {
+		if b.Value {
+			t.Errorf("Expected false for 2 = 3")
+		}
+	} else {
+		t.Errorf("Expected BoolValue, got %T", result)
+	}
+}
+
+func TestEqualExpressionMathematical(t *testing.T) {
+	// 2 + 3 = 5 (数学的に正しい等式)
+	left := NewAddExpression(
+		NewConstant(2),
+		NewConstant(3),
+	)
+	right := NewConstant(5)
+	equal := NewEqualExpression(left, right)
+
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+
+	boolResult, ok := result.(*BoolValue)
+	if !ok {
+		t.Fatalf("Expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("Expected true for 2+3=5")
+	}
+}
+
+func TestEqualExpressionFloatingPointTolerance(t *testing.T) {
+	// 0.1 + 0.2 = 0.3 (浮動小数点誤差を考慮)
+	left := NewAddExpression(
+		&Constant{Value: NumberValue{Value: 0.1}},
+		&Constant{Value: NumberValue{Value: 0.2}},
+	)
+	right := &Constant{Value: NumberValue{Value: 0.3}}
+	equal := NewEqualExpression(left, right)
+
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+
+	boolResult, ok := result.(*BoolValue)
+	if !ok {
+		t.Fatalf("Expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("Expected true for 0.1+0.2=0.3 (with floating point tolerance)")
+	}
+}
+
+func TestEqualExpressionComplex(t *testing.T) {
+	// 2 + 3 = 1 + 4 (both sides evaluate to 5)
+	left := NewAddExpression(
+		NewConstant(2),
+		NewConstant(3),
+	)
+	right := NewAddExpression(
+		NewConstant(1),
+		NewConstant(4),
+	)
+	equal := NewEqualExpression(left, right)
+
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+
+	boolResult, ok := result.(*BoolValue)
+	if !ok {
+		t.Fatalf("Expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("Expected true for (2+3)=(1+4)")
+	}
+}
+
+func TestEqualExpressionZero(t *testing.T) {
+	// 0 = 0 should be true
+	left := &Constant{Value: NumberValue{Value: 0.0}}
+	right := &Constant{Value: NumberValue{Value: 0.0}}
+	equal := NewEqualExpression(left, right)
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if b, ok := result.(*BoolValue); ok {
+		if !b.Value {
+			t.Errorf("Expected true for 0 = 0")
+		}
+	} else {
+		t.Errorf("Expected BoolValue")
+	}
+}
+
+func TestEqualExpressionNegative(t *testing.T) {
+	// -5 = -5 should be true
+	left := &Constant{Value: NumberValue{Value: -5.0}}
+	right := &Constant{Value: NumberValue{Value: -5.0}}
+	equal := NewEqualExpression(left, right)
+	result, ok := equal.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+	if b, ok := result.(*BoolValue); ok {
+		if !b.Value {
+			t.Errorf("Expected true for -5 = -5")
+		}
+	} else {
+		t.Errorf("Expected BoolValue")
+	}
+}
+
+func TestEqualExpressionEvaluationFailure(t *testing.T) {
+	// x = 5 should fail because x cannot be evaluated
+	left := &Variable{Name: "x"}
+	right := &Constant{Value: NumberValue{Value: 5.0}}
+	equal := NewEqualExpression(left, right)
+	_, ok := equal.Eval()
+	if ok {
+		t.Errorf("Expected evaluation to fail due to variable")
+	}
+}
+
+func TestEqualExpressionBothSidesFail(t *testing.T) {
+	// x = y should fail because both variables cannot be evaluated
+	left := &Variable{Name: "x"}
+	right := &Variable{Name: "y"}
+	equal := NewEqualExpression(left, right)
+	_, ok := equal.Eval()
+	if ok {
+		t.Errorf("Expected evaluation to fail due to variables")
+	}
+}
+
+func TestEqualExpressionChildren(t *testing.T) {
+	left := &Constant{Value: NumberValue{Value: 2.0}}
+	right := &Constant{Value: NumberValue{Value: 3.0}}
+	equal := NewEqualExpression(left, right)
+	children := equal.Children()
+	if len(children) != 2 {
+		t.Errorf("Expected 2 children, got %d", len(children))
+	}
+	if children[0] != left || children[1] != right {
+		t.Errorf("Children do not match expected left and right")
+	}
+}
+
+func TestEqualExpressionBoolValues(t *testing.T) {
+	// (2 = 2) = (3 = 3) should be true (both sides are true)
+	leftEqual := NewEqualExpression(
+		NewConstant(2),
+		NewConstant(2),
+	)
+	rightEqual := NewEqualExpression(
+		NewConstant(3),
+		NewConstant(3),
+	)
+	outerEqual := NewEqualExpression(leftEqual, rightEqual)
+
+	result, ok := outerEqual.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+
+	boolResult, ok := result.(*BoolValue)
+	if !ok {
+		t.Fatalf("Expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("Expected true for (2=2)=(3=3)")
+	}
+}
+
+func TestEqualExpressionBoolValuesFalse(t *testing.T) {
+	// (2 = 2) = (3 = 4) should be false (true != false)
+	leftEqual := NewEqualExpression(
+		NewConstant(2),
+		NewConstant(2),
+	)
+	rightEqual := NewEqualExpression(
+		NewConstant(3),
+		NewConstant(4),
+	)
+	outerEqual := NewEqualExpression(leftEqual, rightEqual)
+
+	result, ok := outerEqual.Eval()
+	if !ok {
+		t.Errorf("Expected evaluation to succeed")
+	}
+
+	boolResult, ok := result.(*BoolValue)
+	if !ok {
+		t.Fatalf("Expected BoolValue, got %T", result)
+	}
+
+	if boolResult.Value {
+		t.Errorf("Expected false for (2=2)=(3=4)")
+	}
+}
+
+func TestPatternMatchEqual(t *testing.T) {
+	// Pattern: x = y
+	pattern := NewEqualExpression(
+		NewVariable("x"),
+		NewVariable("y"),
+	)
+
+	// Expression: 2 + 3 = 5
+	expr := NewEqualExpression(
+		NewAddExpression(
+			NewConstant(2),
+			NewConstant(3),
+		),
+		NewConstant(5),
+	)
+
+	bindings, ok := PatternMatch(pattern, expr)
+	if !ok {
+		t.Fatalf("Expected pattern match to succeed")
+	}
+
+	// Check binding for x: should be (2 + 3)
+	xBinding, exists := bindings["x"]
+	if !exists {
+		t.Errorf("Expected binding for variable 'x'")
+	}
+	expectedX := NewAddExpression(
+		NewConstant(2),
+		NewConstant(3),
+	)
+	if !expressionsEqual(xBinding, expectedX) {
+		t.Errorf("Binding for 'x' does not match expected expression")
+	}
+
+	// Check binding for y: should be 5
+	yBinding, exists := bindings["y"]
+	if !exists {
+		t.Errorf("Expected binding for variable 'y'")
+	}
+	expectedY := NewConstant(5)
+	if !expressionsEqual(yBinding, expectedY) {
+		t.Errorf("Binding for 'y' does not match expected expression")
+	}
+}
+
+func TestSubstituteEqual(t *testing.T) {
+	// Expression: x = y
+	expr := NewEqualExpression(
+		NewVariable("x"),
+		NewVariable("y"),
+	)
+
+	// Bindings: x -> 2 + 3, y -> 5
+	bindings := map[string]Expression{
+		"x": NewAddExpression(
+			NewConstant(2),
+			NewConstant(3),
+		),
+		"y": NewConstant(5),
+	}
+
+	// Perform substitution
+	result := Substitute(expr, bindings)
+
+	// Expected result: (2 + 3) = 5
+	expected := NewEqualExpression(
+		NewAddExpression(
+			NewConstant(2),
+			NewConstant(3),
+		),
+		NewConstant(5),
+	)
+
+	if !expressionsEqual(result, expected) {
+		t.Errorf("Substitution result does not match expected expression")
+	}
+}

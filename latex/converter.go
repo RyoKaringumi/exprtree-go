@@ -30,6 +30,8 @@ func (c *Converter) Convert(node LatexNode) (expr.Expression, error) {
 		return c.convertVariable(n), nil
 	case *BinaryOpNode:
 		return c.convertBinaryOp(n)
+	case *EqualNode:
+		return c.convertEqual(n)
 	case *GroupNode:
 		return c.convertGroup(n)
 	case *CommandNode:
@@ -81,6 +83,22 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error)
 	default:
 		return nil, fmt.Errorf("unknown operator: %v", node.Operator.Type)
 	}
+}
+
+// convertEqual converts an EqualNode to EqualExpression
+func (c *Converter) convertEqual(node *EqualNode) (expr.Expression, error) {
+	// Convert left and right children
+	left, err := c.Convert(node.Left)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert left operand: %w", err)
+	}
+
+	right, err := c.Convert(node.Right)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert right operand: %w", err)
+	}
+
+	return expr.NewEqualExpression(left, right), nil
 }
 
 // convertGroup converts a GroupNode by converting its inner expression

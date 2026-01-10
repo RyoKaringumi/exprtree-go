@@ -13,6 +13,14 @@ func (n *NumberValue) Eval() (ExpressValue, bool) {
 	return n, true
 }
 
+type BoolValue struct {
+	Value bool
+}
+
+func (b *BoolValue) Eval() (ExpressValue, bool) {
+	return b, true
+}
+
 type Expression interface {
 	Children() []Expression
 	Eval() (ExpressValue, bool)
@@ -73,6 +81,19 @@ type DivideExpression struct {
 
 func NewDivideExpression(left, right Expression) *DivideExpression {
 	return &DivideExpression{
+		BinaryExpression: BinaryExpression{
+			Left:  left,
+			Right: right,
+		},
+	}
+}
+
+type EqualExpression struct {
+	BinaryExpression
+}
+
+func NewEqualExpression(left, right Expression) *EqualExpression {
+	return &EqualExpression{
 		BinaryExpression: BinaryExpression{
 			Left:  left,
 			Right: right,
@@ -176,6 +197,35 @@ func (e *DivideExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
+func (e *EqualExpression) Eval() (ExpressValue, bool) {
+	leftVal, leftOk := e.Left.Eval()
+	rightVal, rightOk := e.Right.Eval()
+
+	if !leftOk || !rightOk {
+		return nil, false
+	}
+
+	// NumberValue同士の比較
+	if leftNum, ok := leftVal.(*NumberValue); ok {
+		if rightNum, ok := rightVal.(*NumberValue); ok {
+			// 浮動小数点誤差を考慮した比較
+			const epsilon = 1e-9
+			equal := math.Abs(leftNum.Value-rightNum.Value) < epsilon
+			return &BoolValue{Value: equal}, true
+		}
+	}
+
+	// BoolValue同士の比較
+	if leftBool, ok := leftVal.(*BoolValue); ok {
+		if rightBool, ok := rightVal.(*BoolValue); ok {
+			return &BoolValue{Value: leftBool.Value == rightBool.Value}, true
+		}
+	}
+
+	// 型が異なる場合は評価失敗
+	return nil, false
+}
+
 func (c *Constant) Eval() (ExpressValue, bool) {
 	return &c.Value, true
 }
@@ -246,6 +296,11 @@ func patternMatchHelper(pattern Expression, expr Expression, bindings map[string
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
+	case *EqualExpression:
+		if e, ok := expr.(*EqualExpression); ok {
+			return patternMatchHelper(p.Left, e.Left, bindings) &&
+				patternMatchHelper(p.Right, e.Right, bindings)
+		}
 	case *SqrtExpression:
 		if e, ok := expr.(*SqrtExpression); ok {
 			// Root degree must match exactly
@@ -297,6 +352,10 @@ func expressionsEqual(expr1, expr2 Expression) bool {
 		}
 	case *PowerExpression:
 		if e2, ok := expr2.(*PowerExpression); ok {
+			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
+		}
+	case *EqualExpression:
+		if e2, ok := expr2.(*EqualExpression); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
 	case *SqrtExpression:
@@ -355,6 +414,11 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 		)
 	case *PowerExpression:
 		return NewPowerExpression(
+			Substitute(e.Left, bindings),
+			Substitute(e.Right, bindings),
+		)
+	case *EqualExpression:
+		return NewEqualExpression(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)

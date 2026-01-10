@@ -22,6 +22,7 @@ const (
 	LBRACKET                  // [
 	RBRACKET                  // ]
 	COMMAND                   // \sqrt, etc.
+	EQUAL                     // =
 	EOF                       // 入力終端
 	ILLEGAL                   // 不正なトークン
 )
@@ -161,6 +162,9 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 	case ']':
 		tok = Token{Type: RBRACKET, Literal: "]", Pos: l.position}
+		l.readChar()
+	case '=':
+		tok = Token{Type: EQUAL, Literal: "=", Pos: l.position}
 		l.readChar()
 	case '\\':
 		cmdName := l.readCommand()

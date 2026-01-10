@@ -424,3 +424,280 @@ func TestConvert_PowerRightAssociative(t *testing.T) {
 		t.Errorf("expected result 512.0, got %f", numResult.Value)
 	}
 }
+
+func TestConvert_EqualBasic(t *testing.T) {
+	// 2 = 2
+	node := &EqualNode{
+		Left:     &NumberNode{Value: 2.0},
+		Operator: Token{Type: EQUAL},
+		Right:    &NumberNode{Value: 2.0},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("expected true for 2 = 2")
+	}
+}
+
+func TestConvert_EqualTrue(t *testing.T) {
+	// 5 = 5
+	node := &EqualNode{
+		Left:     &NumberNode{Value: 5.0},
+		Operator: Token{Type: EQUAL},
+		Right:    &NumberNode{Value: 5.0},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("expected true for 5 = 5")
+	}
+}
+
+func TestConvert_EqualFalse(t *testing.T) {
+	// 2 = 3
+	node := &EqualNode{
+		Left:     &NumberNode{Value: 2.0},
+		Operator: Token{Type: EQUAL},
+		Right:    &NumberNode{Value: 3.0},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if boolResult.Value {
+		t.Errorf("expected false for 2 = 3")
+	}
+}
+
+func TestConvert_EqualFloatingPoint(t *testing.T) {
+	// 0.1 + 0.2 = 0.3 (floating point tolerance test)
+	node := &EqualNode{
+		Left: &BinaryOpNode{
+			Left:     &NumberNode{Value: 0.1},
+			Operator: Token{Type: PLUS},
+			Right:    &NumberNode{Value: 0.2},
+		},
+		Operator: Token{Type: EQUAL},
+		Right:    &NumberNode{Value: 0.3},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly with floating point tolerance
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("expected true for 0.1+0.2=0.3 (with floating point tolerance)")
+	}
+}
+
+func TestConvert_EqualComplex(t *testing.T) {
+	// 2 + 3 = 1 + 4
+	node := &EqualNode{
+		Left: &BinaryOpNode{
+			Left:     &NumberNode{Value: 2.0},
+			Operator: Token{Type: PLUS},
+			Right:    &NumberNode{Value: 3.0},
+		},
+		Operator: Token{Type: EQUAL},
+		Right: &BinaryOpNode{
+			Left:     &NumberNode{Value: 1.0},
+			Operator: Token{Type: PLUS},
+			Right:    &NumberNode{Value: 4.0},
+		},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly: (2+3) = (1+4) -> 5 = 5 -> true
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("expected true for (2+3)=(1+4)")
+	}
+}
+
+func TestConvert_EqualWithGroups(t *testing.T) {
+	// (2 + 3) = (1 + 4)
+	node := &EqualNode{
+		Left: &GroupNode{
+			Inner: &BinaryOpNode{
+				Left:     &NumberNode{Value: 2.0},
+				Operator: Token{Type: PLUS},
+				Right:    &NumberNode{Value: 3.0},
+			},
+		},
+		Operator: Token{Type: EQUAL},
+		Right: &GroupNode{
+			Inner: &BinaryOpNode{
+				Left:     &NumberNode{Value: 1.0},
+				Operator: Token{Type: PLUS},
+				Right:    &NumberNode{Value: 4.0},
+			},
+		},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("expected true for (2+3)=(1+4)")
+	}
+}
+
+func TestConvert_EqualNested(t *testing.T) {
+	// (2 = 2) = (3 = 3) -> true = true -> true
+	node := &EqualNode{
+		Left: &EqualNode{
+			Left:     &NumberNode{Value: 2.0},
+			Operator: Token{Type: EQUAL},
+			Right:    &NumberNode{Value: 2.0},
+		},
+		Operator: Token{Type: EQUAL},
+		Right: &EqualNode{
+			Left:     &NumberNode{Value: 3.0},
+			Operator: Token{Type: EQUAL},
+			Right:    &NumberNode{Value: 3.0},
+		},
+	}
+	converter := NewConverter()
+
+	expression, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	equalExpr, ok := expression.(*expr.EqualExpression)
+	if !ok {
+		t.Fatalf("expected EqualExpression, got %T", expression)
+	}
+
+	// Verify it evaluates correctly
+	result, ok := equalExpr.Eval()
+	if !ok {
+		t.Errorf("evaluation failed")
+	}
+
+	boolResult, ok := result.(*expr.BoolValue)
+	if !ok {
+		t.Fatalf("expected BoolValue, got %T", result)
+	}
+
+	if !boolResult.Value {
+		t.Errorf("expected true for (2=2)=(3=3)")
+	}
+}

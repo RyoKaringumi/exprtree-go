@@ -395,3 +395,97 @@ func TestLexer_ComplexPowerExpression(t *testing.T) {
 		}
 	}
 }
+
+func TestLexer_Equal(t *testing.T) {
+	input := "="
+	lexer := NewLexer(input)
+
+	tok := lexer.NextToken()
+	if tok.Type != EQUAL {
+		t.Errorf("expected EQUAL token, got %v", tok.Type)
+	}
+	if tok.Literal != "=" {
+		t.Errorf("expected literal '=', got '%s'", tok.Literal)
+	}
+}
+
+func TestLexer_EqualInExpression(t *testing.T) {
+	input := "2 + 3 = 5"
+	lexer := NewLexer(input)
+
+	expectedTokens := []struct {
+		tokenType TokenType
+		literal   string
+		value     float64
+	}{
+		{NUMBER, "2", 2.0},
+		{PLUS, "+", 0},
+		{NUMBER, "3", 3.0},
+		{EQUAL, "=", 0},
+		{NUMBER, "5", 5.0},
+		{EOF, "", 0},
+	}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+
+		if tok.Type != expected.tokenType {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected.tokenType, tok.Type)
+		}
+		if tok.Literal != expected.literal {
+			t.Errorf("token[%d] - expected literal %s, got %s", i, expected.literal, tok.Literal)
+		}
+		if expected.tokenType == NUMBER && tok.Value != expected.value {
+			t.Errorf("token[%d] - expected value %f, got %f", i, expected.value, tok.Value)
+		}
+	}
+}
+
+func TestLexer_MultipleEquals(t *testing.T) {
+	input := "a = b = c"
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{
+		VARIABLE, EQUAL, VARIABLE, EQUAL, VARIABLE, EOF,
+	}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}
+
+func TestLexer_EqualWithWhitespace(t *testing.T) {
+	input := "  2  =  3  "
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{NUMBER, EQUAL, NUMBER, EOF}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}
+
+func TestLexer_ComplexEqualExpression(t *testing.T) {
+	input := "(2 + 3) = (1 + 4)"
+	lexer := NewLexer(input)
+
+	expectedTokens := []TokenType{
+		LPAREN, NUMBER, PLUS, NUMBER, RPAREN,
+		EQUAL,
+		LPAREN, NUMBER, PLUS, NUMBER, RPAREN,
+		EOF,
+	}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected, tok.Type)
+		}
+	}
+}

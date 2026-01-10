@@ -667,3 +667,205 @@ func TestParser_ErrorSqrtUnmatchedBrace(t *testing.T) {
 		t.Errorf("expected error for unmatched brace")
 	}
 }
+
+func TestParser_EqualBasic(t *testing.T) {
+	input := "2 = 2"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	equalNode, ok := node.(*EqualNode)
+	if !ok {
+		t.Fatalf("expected EqualNode, got %T", node)
+	}
+
+	if equalNode.Operator.Type != EQUAL {
+		t.Errorf("expected EQUAL operator, got %v", equalNode.Operator.Type)
+	}
+
+	left, ok := equalNode.Left.(*NumberNode)
+	if !ok || left.Value != 2.0 {
+		t.Errorf("expected left operand 2.0")
+	}
+
+	right, ok := equalNode.Right.(*NumberNode)
+	if !ok || right.Value != 2.0 {
+		t.Errorf("expected right operand 2.0")
+	}
+}
+
+func TestParser_EqualWithExpression(t *testing.T) {
+	input := "2 + 3 = 5"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	// Should parse as: (2 + 3) = 5
+	equalNode, ok := node.(*EqualNode)
+	if !ok {
+		t.Fatalf("expected EqualNode at root, got %T", node)
+	}
+
+	if equalNode.Operator.Type != EQUAL {
+		t.Errorf("expected EQUAL at root, got %v", equalNode.Operator.Type)
+	}
+
+	// Left should be (2 + 3)
+	leftBinOp, ok := equalNode.Left.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode on left, got %T", equalNode.Left)
+	}
+
+	if leftBinOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS on left, got %v", leftBinOp.Operator.Type)
+	}
+
+	// Right should be 5
+	right, ok := equalNode.Right.(*NumberNode)
+	if !ok || right.Value != 5.0 {
+		t.Errorf("expected right operand 5.0")
+	}
+}
+
+func TestParser_EqualPrecedence(t *testing.T) {
+	input := "2 + 3 = 1 + 4"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	// Should parse as: (2 + 3) = (1 + 4)
+	equalNode, ok := node.(*EqualNode)
+	if !ok {
+		t.Fatalf("expected EqualNode at root, got %T", node)
+	}
+
+	if equalNode.Operator.Type != EQUAL {
+		t.Errorf("expected EQUAL at root, got %v", equalNode.Operator.Type)
+	}
+
+	// Left should be (2 + 3)
+	leftBinOp, ok := equalNode.Left.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode on left, got %T", equalNode.Left)
+	}
+
+	if leftBinOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS on left, got %v", leftBinOp.Operator.Type)
+	}
+
+	// Right should be (1 + 4)
+	rightBinOp, ok := equalNode.Right.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode on right, got %T", equalNode.Right)
+	}
+
+	if rightBinOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS on right, got %v", rightBinOp.Operator.Type)
+	}
+}
+
+func TestParser_EqualLeftAssociativity(t *testing.T) {
+	input := "a = b = c"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	// Should parse as: (a = b) = c (left-associative)
+	equalNode, ok := node.(*EqualNode)
+	if !ok {
+		t.Fatalf("expected EqualNode at root, got %T", node)
+	}
+
+	if equalNode.Operator.Type != EQUAL {
+		t.Errorf("expected EQUAL at root, got %v", equalNode.Operator.Type)
+	}
+
+	// Left should be (a = b)
+	leftEqualNode, ok := equalNode.Left.(*EqualNode)
+	if !ok {
+		t.Fatalf("expected EqualNode on left, got %T", equalNode.Left)
+	}
+
+	if leftEqualNode.Operator.Type != EQUAL {
+		t.Errorf("expected EQUAL on left, got %v", leftEqualNode.Operator.Type)
+	}
+
+	// Right should be variable c
+	rightVar, ok := equalNode.Right.(*VariableNode)
+	if !ok || rightVar.Name != "c" {
+		t.Errorf("expected right to be variable 'c'")
+	}
+}
+
+func TestParser_EqualComplex(t *testing.T) {
+	input := "(2 + 3) = (1 + 4)"
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	node, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("Parse error: %v", err)
+	}
+
+	equalNode, ok := node.(*EqualNode)
+	if !ok {
+		t.Fatalf("expected EqualNode at root, got %T", node)
+	}
+
+	// Left should be GroupNode containing (2 + 3)
+	leftGroup, ok := equalNode.Left.(*GroupNode)
+	if !ok {
+		t.Fatalf("expected GroupNode on left, got %T", equalNode.Left)
+	}
+
+	leftBinOp, ok := leftGroup.Inner.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode inside left group, got %T", leftGroup.Inner)
+	}
+
+	if leftBinOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS inside left group, got %v", leftBinOp.Operator.Type)
+	}
+
+	// Right should be GroupNode containing (1 + 4)
+	rightGroup, ok := equalNode.Right.(*GroupNode)
+	if !ok {
+		t.Fatalf("expected GroupNode on right, got %T", equalNode.Right)
+	}
+
+	rightBinOp, ok := rightGroup.Inner.(*BinaryOpNode)
+	if !ok {
+		t.Fatalf("expected BinaryOpNode inside right group, got %T", rightGroup.Inner)
+	}
+
+	if rightBinOp.Operator.Type != PLUS {
+		t.Errorf("expected PLUS inside right group, got %v", rightBinOp.Operator.Type)
+	}
+}
+
+func TestParser_ErrorEqualIncomplete(t *testing.T) {
+	input := "2 = "
+	lexer := NewLexer(input)
+	parser := NewParser(lexer)
+
+	_, err := parser.Parse()
+	if err == nil {
+		t.Errorf("expected error for incomplete equal expression")
+	}
+}
