@@ -1490,3 +1490,190 @@ func TestRationalImmutability(t *testing.T) {
 		})
 	}
 }
+
+// TestCommonDenominator tests converting two rationals to have a common denominator
+// CommonDenominator()は2つの有理数を受け取り、共通の分母(最小公倍数)を持つように変換する
+func TestCommonDenominator(t *testing.T) {
+	tests := []struct {
+		name          string
+		r1Num         int64
+		r1Denom       int64
+		r2Num         int64
+		r2Denom       int64
+		wantR1Num     int64
+		wantR1Denom   int64
+		wantR2Num     int64
+		wantR2Denom   int64
+		description   string
+	}{
+		{
+			name:    "基本的な通分",
+			r1Num:   1, r1Denom: 2,
+			r2Num:   1, r2Denom: 3,
+			wantR1Num: 3, wantR1Denom: 6,
+			wantR2Num: 2, wantR2Denom: 6,
+			description: "1/2 と 1/3 → 3/6 と 2/6 (LCM=6)",
+		},
+		{
+			name:    "既に同じ分母",
+			r1Num:   1, r1Denom: 4,
+			r2Num:   3, r2Denom: 4,
+			wantR1Num: 1, wantR1Denom: 4,
+			wantR2Num: 3, wantR2Denom: 4,
+			description: "1/4 と 3/4 → そのまま（既に分母が同じ）",
+		},
+		{
+			name:    "分母が倍数関係",
+			r1Num:   1, r1Denom: 3,
+			r2Num:   1, r2Denom: 6,
+			wantR1Num: 2, wantR1Denom: 6,
+			wantR2Num: 1, wantR2Denom: 6,
+			description: "1/3 と 1/6 → 2/6 と 1/6 (LCM=6)",
+		},
+		{
+			name:    "分母が互いに素",
+			r1Num:   2, r1Denom: 5,
+			r2Num:   3, r2Denom: 7,
+			wantR1Num: 14, wantR1Denom: 35,
+			wantR2Num: 15, wantR2Denom: 35,
+			description: "2/5 と 3/7 → 14/35 と 15/35 (LCM=35)",
+		},
+		{
+			name:    "整数との通分",
+			r1Num:   1, r1Denom: 2,
+			r2Num:   3, r2Denom: 1,
+			wantR1Num: 1, wantR1Denom: 2,
+			wantR2Num: 6, wantR2Denom: 2,
+			description: "1/2 と 3/1 → 1/2 と 6/2 (LCM=2)",
+		},
+		{
+			name:    "負の数を含む通分",
+			r1Num:   -1, r1Denom: 2,
+			r2Num:   1, r2Denom: 3,
+			wantR1Num: -3, wantR1Denom: 6,
+			wantR2Num: 2, wantR2Denom: 6,
+			description: "-1/2 と 1/3 → -3/6 と 2/6 (LCM=6)",
+		},
+		{
+			name:    "両方負の数",
+			r1Num:   -2, r1Denom: 3,
+			r2Num:   -3, r2Denom: 4,
+			wantR1Num: -8, wantR1Denom: 12,
+			wantR2Num: -9, wantR2Denom: 12,
+			description: "-2/3 と -3/4 → -8/12 と -9/12 (LCM=12)",
+		},
+		{
+			name:    "ゼロを含む通分",
+			r1Num:   0, r1Denom: 1,
+			r2Num:   1, r2Denom: 3,
+			wantR1Num: 0, wantR1Denom: 3,
+			wantR2Num: 1, wantR2Denom: 3,
+			description: "0/1 と 1/3 → 0/3 と 1/3 (LCM=3)",
+		},
+		{
+			name:    "複雑な分母のGCD",
+			r1Num:   1, r1Denom: 12,
+			r2Num:   1, r2Denom: 18,
+			wantR1Num: 3, wantR1Denom: 36,
+			wantR2Num: 2, wantR2Denom: 36,
+			description: "1/12 と 1/18 → 3/36 と 2/36 (LCM=36, GCD=6)",
+		},
+		{
+			name:    "負の分母を含む通分（符号保持）",
+			r1Num:   1, r1Denom: -2,
+			r2Num:   1, r2Denom: 3,
+			wantR1Num: 3, wantR1Denom: -6,
+			wantR2Num: -2, wantR2Denom: -6,
+			description: "1/-2 と 1/3 → 3/-6 と -2/-6 (符号は変換しない、分母は負の値)",
+		},
+		{
+			name:    "大きな分母の通分",
+			r1Num:   1, r1Denom: 100,
+			r2Num:   1, r2Denom: 150,
+			wantR1Num: 3, wantR1Denom: 300,
+			wantR2Num: 2, wantR2Denom: 300,
+			description: "1/100 と 1/150 → 3/300 と 2/300 (LCM=300)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 実装待ち
+			// r1, _ := NewRational(tt.r1Num, tt.r1Denom)
+			// r2, _ := NewRational(tt.r2Num, tt.r2Denom)
+			//
+			// result1, result2 := CommonDenominator(r1, r2)
+			//
+			// if result1.Numerator != tt.wantR1Num || result1.Denominator != tt.wantR1Denom {
+			//     t.Errorf("CommonDenominator() result1 = %d/%d, want %d/%d",
+			//         result1.Numerator, result1.Denominator, tt.wantR1Num, tt.wantR1Denom)
+			// }
+			// if result2.Numerator != tt.wantR2Num || result2.Denominator != tt.wantR2Denom {
+			//     t.Errorf("CommonDenominator() result2 = %d/%d, want %d/%d",
+			//         result2.Numerator, result2.Denominator, tt.wantR2Num, tt.wantR2Denom)
+			// }
+			//
+			// // 元のオブジェクトが変更されていないことを確認（イミュータブル性）
+			// if r1.Numerator != tt.r1Num || r1.Denominator != tt.r1Denom {
+			//     t.Errorf("CommonDenominator()がr1を変更した: %d/%d → %d/%d",
+			//         tt.r1Num, tt.r1Denom, r1.Numerator, r1.Denominator)
+			// }
+			// if r2.Numerator != tt.r2Num || r2.Denominator != tt.r2Denom {
+			//     t.Errorf("CommonDenominator()がr2を変更した: %d/%d → %d/%d",
+			//         tt.r2Num, tt.r2Denom, r2.Numerator, r2.Denominator)
+			// }
+		})
+	}
+}
+
+// TestCommonDenominatorEquivalence tests that common denominator preserves value
+// 通分後も元の値と等価であることを確認
+func TestCommonDenominatorEquivalence(t *testing.T) {
+	tests := []struct {
+		name        string
+		r1Num       int64
+		r1Denom     int64
+		r2Num       int64
+		r2Denom     int64
+		description string
+	}{
+		{
+			name:    "通分後の値の等価性",
+			r1Num:   1, r1Denom: 2,
+			r2Num:   1, r2Denom: 3,
+			description: "1/2と1/3を通分しても、それぞれの値は変わらない",
+		},
+		{
+			name:    "複雑な分数での等価性",
+			r1Num:   5, r1Denom: 12,
+			r2Num:   7, r2Denom: 18,
+			description: "5/12と7/18を通分しても、それぞれの値は変わらない",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 実装待ち
+			// r1, _ := NewRational(tt.r1Num, tt.r1Denom)
+			// r2, _ := NewRational(tt.r2Num, tt.r2Denom)
+			//
+			// result1, result2 := CommonDenominator(r1, r2)
+			//
+			// // 通分前後で値が等しいことを確認
+			// if !Equal(r1, result1) {
+			//     t.Errorf("通分後の値が変わった: %d/%d ≠ %d/%d",
+			//         r1.Numerator, r1.Denominator, result1.Numerator, result1.Denominator)
+			// }
+			// if !Equal(r2, result2) {
+			//     t.Errorf("通分後の値が変わった: %d/%d ≠ %d/%d",
+			//         r2.Numerator, r2.Denominator, result2.Numerator, result2.Denominator)
+			// }
+			//
+			// // 通分後の分母が同じことを確認
+			// if result1.Denominator != result2.Denominator {
+			//     t.Errorf("通分後の分母が異なる: %d ≠ %d",
+			//         result1.Denominator, result2.Denominator)
+			// }
+		})
+	}
+}
