@@ -1,12 +1,26 @@
 package expr
 
+import "math"
+
 // GCD はユークリッドの互除法を用いて2つのint64値の最大公約数を計算します。
 // 負の入力に対しては、その絶対値の最大公約数を返します。
 // GCD(0, 0) は慣例により0を返します。
 // この関数は有理数演算で内部的に使用されますが、単独でも使用できます。
 func GCD(a, b int64) int64 {
 	// TODO: ユークリッドの互除法を実装
-	panic("not implemented")
+	if a < 0 {
+		a = -a
+	}
+	if b < 0 {
+		b = -b
+	}
+	if a == 0 && b == 0 {
+		return 0
+	}
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
 }
 
 // LCM は2つのint64値の最小公倍数を計算します。
@@ -14,7 +28,11 @@ func GCD(a, b int64) int64 {
 // LCM(a, 0) または LCM(0, b) は0を返します。
 func LCM(a, b int64) int64 {
 	// TODO: GCDを使用して実装
-	panic("not implemented")
+	if a == 0 || b == 0 {
+		return 0
+	}
+	gcd := GCD(a, b)
+	return int64(math.Abs(float64(a*b)) / float64(gcd))
 }
 
 // IsPrime はnが素数かどうかを判定します。
@@ -22,7 +40,12 @@ func LCM(a, b int64) int64 {
 // sqrt(n)までの試し割りを使用します。
 func IsPrime(n int64) bool {
 	// TODO: 試し割り法を実装
-	panic("not implemented")
+	for i := int64(2); i*i <= n; i++ {
+		if n%i == 0 {
+			return false
+		}
+	}
+	return n > 1
 }
 
 // PrimeFactorization はnの素因数分解を素因数のスライスとして返します。
@@ -33,7 +56,23 @@ func IsPrime(n int64) bool {
 // 例: PrimeFactorization(60) は [2, 2, 3, 5] を返します（60 = 2^2 * 3 * 5）
 func PrimeFactorization(n int64) []int64 {
 	// TODO: 試し割り法による素因数分解を実装
-	panic("not implemented")
+	if n <= 0 {
+		panic("PrimeFactorization: n must be positive")
+	}
+	if n == 1 {
+		return []int64{}
+	}
+	var factors []int64
+	for i := int64(2); i*i <= n; i++ {
+		for n%i == 0 {
+			factors = append(factors, i)
+			n /= i
+		}
+	}
+	if n > 1 {
+		factors = append(factors, n)
+	}
+	return factors
 }
 
 // Divisors はnのすべての正の約数を昇順で返します。
@@ -42,8 +81,16 @@ func PrimeFactorization(n int64) []int64 {
 //
 // 例: Divisors(12) は [1, 2, 3, 4, 6, 12] を返します
 func Divisors(n int64) []int64 {
-	// TODO: sqrt(n)まで反復して実装
-	panic("not implemented")
+	if n <= 0 {
+		panic("Divisors: n must be positive")
+	}
+	var divisors []int64
+	for i := int64(1); i <= n; i++ {
+		if n%i == 0 {
+			divisors = append(divisors, i)
+		}
+	}
+	return divisors
 }
 
 // NumDivisors はnの正の約数の個数を返します。
