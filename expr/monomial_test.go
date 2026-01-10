@@ -803,7 +803,7 @@ func TestIsMonomial(t *testing.T) {
 				),
 				NewConstant(2),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "sqrt of power: sqrt(x^2)",
@@ -865,7 +865,7 @@ func TestIsMonomial(t *testing.T) {
 				NewVariable("x"),
 				NewConstant(0),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power with one exponent: x^1",
@@ -1240,7 +1240,7 @@ func TestGetCoefficient(t *testing.T) {
 				),
 			),
 			expected: 3,
-			hasCoeff: true,
+			hasCoeff: false,
 		},
 		{
 			name: "nth root coefficient: 4 * cbrt(x)",

@@ -41,9 +41,30 @@ func IsMonomial(node Expression) bool {
 	case *DivideExpression:
 		_, ok := e.Right.Eval()
 		return IsMonomial(e.Left) && ok
+
 	case *PowerExpression:
-		return true
+		// べき乗の場合、指数が1以上の整数である必要がある
+		// なぜならば、x^2の場合、xxに分解でき、結果として掛け算のみで構築されている事に出来る。
+		// しかし、x^0.5などの場合、分解すると平方根が含まれてしまい、単項式ではなくなってしまう。
+		exponentValue, ok := e.Right.Eval()
+		if !ok {
+			return false
+		}
+		if number, ok := exponentValue.(*NumberValue); ok {
+			if number.Value >= 1 && number.Value == float64(int(number.Value)) {
+				// 指数が1以上の整数の場合、基数が単項式である必要がある
+				// さらに、基数が単項式である必要がある
+				//
+				// 基数がいかなる単項式だったとしても、整数のべき乗でその式を一定回数繰り返したものを展開するだけなので、単項式である
+				return IsMonomial(e.Left)
+			}
+		}
+		return false
 	case *SqrtExpression:
+		return false
+
+	// 加算減算は多項式であって、単項式ではない
+	case *AddExpression, *SubtractExpression:
 		return false
 	default:
 		return false
@@ -59,6 +80,9 @@ func MapFactors(node Expression, fn func(Expression) Expression) Expression {
 }
 
 func GetCoefficient(node Expression) (float64, bool) {
+	if !IsMonomial(node) {
+		return 1, false
+	}
 	var factors = SplitToFactors(node)
 	var coefficientFactors = []Expression{
 		NewConstant(1),
@@ -84,6 +108,25 @@ func GetDegree(node Expression) (int, bool) {
 	for _, factor := range factors {
 		if _, ok := factor.(*Variable); ok {
 			degree += 1
+		}
+		if powerExpr, ok := factor.(*PowerExpression); ok {
+			exponentValue, ok := powerExpr.Right.Eval()
+			if !ok {
+				return 0, false
+			}
+			if number, ok := exponentValue.(*NumberValue); ok {
+				if number.Value >= 0 && number.Value == float64(int(number.Value)) {
+					leftDegree, ok := GetDegree(powerExpr.Left)
+					if !ok {
+						return 0, false
+					}
+					degree += int(number.Value) * leftDegree
+				} else {
+					return 0, false
+				}
+			} else {
+				return 0, false
+			}
 		}
 	}
 	return degree, true

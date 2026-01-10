@@ -33,23 +33,7 @@ func CountTerms(node Expression) int {
 }
 
 func IsPolynomialTerm(node Expression) bool {
-	switch e := node.(type) {
-	case *AddExpression, *SubtractExpression:
-		return false
-	case *MultiplyExpression:
-		return IsPolynomialTerm(e.Left) && IsPolynomialTerm(e.Right)
-	case *DivideExpression:
-		_, ok := e.Right.Eval()
-		return IsPolynomialTerm(e.Left) && ok
-	case *Constant, *Variable:
-		return true
-	case *PowerExpression:
-		return true
-	case *SqrtExpression:
-		return true
-	default:
-		return false
-	}
+	return IsMonomial(node)
 }
 
 func MapTerms(node Expression, fn func(Expression) Expression) Expression {

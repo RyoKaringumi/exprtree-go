@@ -827,7 +827,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 				NewConstant(8),
 				3,
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "sqrt with coefficient: 2 * sqrt(x)",
@@ -858,7 +858,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 				),
 				NewConstant(2),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "sqrt of power: sqrt(x^2)",
@@ -922,7 +922,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 				NewVariable("x"),
 				NewConstant(0),
 			),
-			expected: true,
+			expected: false,
 		},
 		{
 			name: "power with one exponent: x^1",
