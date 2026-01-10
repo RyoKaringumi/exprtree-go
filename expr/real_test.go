@@ -171,13 +171,13 @@ func TestRationalAdd(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// 実装待ち
-			// r1, _ := NewRational(tt.r1Num, tt.r1Denom)
-			// r2, _ := NewRational(tt.r2Num, tt.r2Denom)
-			// result := RationalAdd(r1, r2)
-			// if result.Numerator != tt.wantNum || result.Denominator != tt.wantDenom {
-			// 	t.Errorf("Add() = %d/%d, want %d/%d",
-			// 		result.Numerator, result.Denominator, tt.wantNum, tt.wantDenom)
-			// }
+			r1, _ := NewRational(tt.r1Num, tt.r1Denom)
+			r2, _ := NewRational(tt.r2Num, tt.r2Denom)
+			result := RationalAdd(r1, r2)
+			if result.Numerator != tt.wantNum || result.Denominator != tt.wantDenom {
+				t.Errorf("Add() = %d/%d, want %d/%d",
+					result.Numerator, result.Denominator, tt.wantNum, tt.wantDenom)
+			}
 		})
 	}
 }
