@@ -88,7 +88,11 @@ func NewDivide(left, right Expression) *Divide {
 	}
 }
 
+type Proposition interface {
+}
+
 type Equal struct {
+	Proposition
 	BinaryExpression
 }
 
@@ -98,6 +102,19 @@ func NewEqual(left, right Expression) *Equal {
 			Left:  left,
 			Right: right,
 		},
+	}
+}
+
+type And struct {
+	Proposition
+	Left  Proposition
+	Right Proposition
+}
+
+func NewAnd(left, right Proposition) *And {
+	return &And{
+		Left:  left,
+		Right: right,
 	}
 }
 
