@@ -36,12 +36,12 @@ func (b *BinaryExpression) Children() []Expression {
 	return []Expression{b.Left, b.Right}
 }
 
-type AddExpression struct {
+type Add struct {
 	BinaryExpression
 }
 
-func NewAddExpression(left, right Expression) *AddExpression {
-	return &AddExpression{
+func NewAdd(left, right Expression) *Add {
+	return &Add{
 		BinaryExpression: BinaryExpression{
 			Left:  left,
 			Right: right,
@@ -49,12 +49,12 @@ func NewAddExpression(left, right Expression) *AddExpression {
 	}
 }
 
-type SubtractExpression struct {
+type Subtract struct {
 	BinaryExpression
 }
 
-func NewSubtractExpression(left, right Expression) *SubtractExpression {
-	return &SubtractExpression{
+func NewSubtract(left, right Expression) *Subtract {
+	return &Subtract{
 		BinaryExpression: BinaryExpression{
 			Left:  left,
 			Right: right,
@@ -62,12 +62,12 @@ func NewSubtractExpression(left, right Expression) *SubtractExpression {
 	}
 }
 
-type MultiplyExpression struct {
+type Multiply struct {
 	BinaryExpression
 }
 
-func NewMultiplyExpression(left, right Expression) *MultiplyExpression {
-	return &MultiplyExpression{
+func NewMultiply(left, right Expression) *Multiply {
+	return &Multiply{
 		BinaryExpression: BinaryExpression{
 			Left:  left,
 			Right: right,
@@ -75,12 +75,12 @@ func NewMultiplyExpression(left, right Expression) *MultiplyExpression {
 	}
 }
 
-type DivideExpression struct {
+type Divide struct {
 	BinaryExpression
 }
 
-func NewDivideExpression(left, right Expression) *DivideExpression {
-	return &DivideExpression{
+func NewDivide(left, right Expression) *Divide {
+	return &Divide{
 		BinaryExpression: BinaryExpression{
 			Left:  left,
 			Right: right,
@@ -88,12 +88,12 @@ func NewDivideExpression(left, right Expression) *DivideExpression {
 	}
 }
 
-type EqualExpression struct {
+type Equal struct {
 	BinaryExpression
 }
 
-func NewEqualExpression(left, right Expression) *EqualExpression {
-	return &EqualExpression{
+func NewEqual(left, right Expression) *Equal {
+	return &Equal{
 		BinaryExpression: BinaryExpression{
 			Left:  left,
 			Right: right,
@@ -131,7 +131,7 @@ func (v *Variable) Children() []Expression {
 	return []Expression{}
 }
 
-func (e *AddExpression) Eval() (ExpressValue, bool) {
+func (e *Add) Eval() (ExpressValue, bool) {
 	leftVal, leftOk := e.Left.Eval()
 	rightVal, rightOk := e.Right.Eval()
 
@@ -147,7 +147,7 @@ func (e *AddExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
-func (e *SubtractExpression) Eval() (ExpressValue, bool) {
+func (e *Subtract) Eval() (ExpressValue, bool) {
 	leftVal, leftOk := e.Left.Eval()
 	rightVal, rightOk := e.Right.Eval()
 
@@ -163,7 +163,7 @@ func (e *SubtractExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
-func (e *MultiplyExpression) Eval() (ExpressValue, bool) {
+func (e *Multiply) Eval() (ExpressValue, bool) {
 	leftVal, leftOk := e.Left.Eval()
 	rightVal, rightOk := e.Right.Eval()
 
@@ -179,7 +179,7 @@ func (e *MultiplyExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
-func (e *DivideExpression) Eval() (ExpressValue, bool) {
+func (e *Divide) Eval() (ExpressValue, bool) {
 	leftVal, leftOk := e.Left.Eval()
 	rightVal, rightOk := e.Right.Eval()
 
@@ -197,7 +197,7 @@ func (e *DivideExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
-func (e *EqualExpression) Eval() (ExpressValue, bool) {
+func (e *Equal) Eval() (ExpressValue, bool) {
 	leftVal, leftOk := e.Left.Eval()
 	rightVal, rightOk := e.Right.Eval()
 
@@ -271,38 +271,38 @@ func patternMatchHelper(pattern Expression, expr Expression, bindings map[string
 
 	// For binary expressions, both must be the same type and children must match
 	switch p := pattern.(type) {
-	case *AddExpression:
-		if e, ok := expr.(*AddExpression); ok {
+	case *Add:
+		if e, ok := expr.(*Add); ok {
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
-	case *SubtractExpression:
-		if e, ok := expr.(*SubtractExpression); ok {
+	case *Subtract:
+		if e, ok := expr.(*Subtract); ok {
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
-	case *MultiplyExpression:
-		if e, ok := expr.(*MultiplyExpression); ok {
+	case *Multiply:
+		if e, ok := expr.(*Multiply); ok {
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
-	case *DivideExpression:
-		if e, ok := expr.(*DivideExpression); ok {
+	case *Divide:
+		if e, ok := expr.(*Divide); ok {
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
-	case *PowerExpression:
-		if e, ok := expr.(*PowerExpression); ok {
+	case *Power:
+		if e, ok := expr.(*Power); ok {
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
-	case *EqualExpression:
-		if e, ok := expr.(*EqualExpression); ok {
+	case *Equal:
+		if e, ok := expr.(*Equal); ok {
 			return patternMatchHelper(p.Left, e.Left, bindings) &&
 				patternMatchHelper(p.Right, e.Right, bindings)
 		}
-	case *SqrtExpression:
-		if e, ok := expr.(*SqrtExpression); ok {
+	case *Sqrt:
+		if e, ok := expr.(*Sqrt); ok {
 			// Root degree must match exactly
 			if p.N != e.N {
 				return false
@@ -334,32 +334,32 @@ func expressionsEqual(expr1, expr2 Expression) bool {
 
 	// Check if both are the same type of binary expression
 	switch e1 := expr1.(type) {
-	case *AddExpression:
-		if e2, ok := expr2.(*AddExpression); ok {
+	case *Add:
+		if e2, ok := expr2.(*Add); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
-	case *SubtractExpression:
-		if e2, ok := expr2.(*SubtractExpression); ok {
+	case *Subtract:
+		if e2, ok := expr2.(*Subtract); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
-	case *MultiplyExpression:
-		if e2, ok := expr2.(*MultiplyExpression); ok {
+	case *Multiply:
+		if e2, ok := expr2.(*Multiply); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
-	case *DivideExpression:
-		if e2, ok := expr2.(*DivideExpression); ok {
+	case *Divide:
+		if e2, ok := expr2.(*Divide); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
-	case *PowerExpression:
-		if e2, ok := expr2.(*PowerExpression); ok {
+	case *Power:
+		if e2, ok := expr2.(*Power); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
-	case *EqualExpression:
-		if e2, ok := expr2.(*EqualExpression); ok {
+	case *Equal:
+		if e2, ok := expr2.(*Equal); ok {
 			return expressionsEqual(e1.Left, e2.Left) && expressionsEqual(e1.Right, e2.Right)
 		}
-	case *SqrtExpression:
-		if e2, ok := expr2.(*SqrtExpression); ok {
+	case *Sqrt:
+		if e2, ok := expr2.(*Sqrt); ok {
 			return e1.N == e2.N && expressionsEqual(e1.Operand, e2.Operand)
 		}
 	}
@@ -392,38 +392,38 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 
 	// For binary expressions, recursively substitute in children
 	switch e := expr.(type) {
-	case *AddExpression:
-		return NewAddExpression(
+	case *Add:
+		return NewAdd(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
-	case *SubtractExpression:
-		return NewSubtractExpression(
+	case *Subtract:
+		return NewSubtract(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
-	case *MultiplyExpression:
-		return NewMultiplyExpression(
+	case *Multiply:
+		return NewMultiply(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
-	case *DivideExpression:
-		return NewDivideExpression(
+	case *Divide:
+		return NewDivide(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
-	case *PowerExpression:
-		return NewPowerExpression(
+	case *Power:
+		return NewPower(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
-	case *EqualExpression:
-		return NewEqualExpression(
+	case *Equal:
+		return NewEqual(
 			Substitute(e.Left, bindings),
 			Substitute(e.Right, bindings),
 		)
-	case *SqrtExpression:
-		return NewNthRootExpression(
+	case *Sqrt:
+		return NewNthRoot(
 			Substitute(e.Operand, bindings),
 			e.N,
 		)
@@ -433,12 +433,12 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 	return expr
 }
 
-type PowerExpression struct {
+type Power struct {
 	BinaryExpression
 }
 
-func NewPowerExpression(base, exponent Expression) *PowerExpression {
-	return &PowerExpression{
+func NewPower(base, exponent Expression) *Power {
+	return &Power{
 		BinaryExpression: BinaryExpression{
 			Left:  base,
 			Right: exponent,
@@ -446,7 +446,7 @@ func NewPowerExpression(base, exponent Expression) *PowerExpression {
 	}
 }
 
-func (e *PowerExpression) Eval() (ExpressValue, bool) {
+func (e *Power) Eval() (ExpressValue, bool) {
 	baseVal, baseOk := e.Left.Eval()
 	exponentVal, exponentOk := e.Right.Eval()
 
@@ -462,24 +462,24 @@ func (e *PowerExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
-type SqrtExpression struct {
+type Sqrt struct {
 	Expression
 	Operand Expression
 	N       float64 // Root degree (e.g., 2 for square root, 3 for cube root)
 }
 
-func NewSqrtExpression(operand Expression) *SqrtExpression {
-	return NewNthRootExpression(operand, 2)
+func NewSqrt(operand Expression) *Sqrt {
+	return NewNthRoot(operand, 2)
 }
 
-func NewNthRootExpression(operand Expression, n float64) *SqrtExpression {
-	return &SqrtExpression{
+func NewNthRoot(operand Expression, n float64) *Sqrt {
+	return &Sqrt{
 		Operand: operand,
 		N:       n,
 	}
 }
 
-func (e *SqrtExpression) Eval() (ExpressValue, bool) {
+func (e *Sqrt) Eval() (ExpressValue, bool) {
 	operandVal, operandOk := e.Operand.Eval()
 
 	if !operandOk {
@@ -505,6 +505,6 @@ func (e *SqrtExpression) Eval() (ExpressValue, bool) {
 	return nil, false
 }
 
-func (e *SqrtExpression) Children() []Expression {
+func (e *Sqrt) Children() []Expression {
 	return []Expression{e.Operand}
 }

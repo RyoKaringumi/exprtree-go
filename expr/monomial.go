@@ -3,7 +3,7 @@ package expr
 func SplitToFactors(node Expression) []Expression {
 	var factors []Expression
 	switch e := node.(type) {
-	case *MultiplyExpression:
+	case *Multiply:
 		factors = append(factors, SplitToFactors(e.Left)...)
 		factors = append(factors, SplitToFactors(e.Right)...)
 	default:
@@ -18,14 +18,14 @@ func CombineFactors(factors []Expression) Expression {
 	}
 	result := factors[0]
 	for i := 1; i < len(factors); i++ {
-		result = NewMultiplyExpression(result, factors[i])
+		result = NewMultiply(result, factors[i])
 	}
 	return result
 }
 
 func CountFactors(node Expression) int {
 	switch e := node.(type) {
-	case *MultiplyExpression:
+	case *Multiply:
 		return CountFactors(e.Left) + CountFactors(e.Right)
 	default:
 		return 1
@@ -36,13 +36,13 @@ func IsMonomial(node Expression) bool {
 	switch e := node.(type) {
 	case *Constant, *Variable:
 		return true
-	case *MultiplyExpression:
+	case *Multiply:
 		return IsMonomial(e.Left) && IsMonomial(e.Right)
-	case *DivideExpression:
+	case *Divide:
 		_, ok := e.Right.Eval()
 		return IsMonomial(e.Left) && ok
 
-	case *PowerExpression:
+	case *Power:
 		// べき乗の場合、指数が1以上の整数である必要がある
 		// なぜならば、x^2の場合、xxに分解でき、結果として掛け算のみで構築されている事に出来る。
 		// しかし、x^0.5などの場合、分解すると平方根が含まれてしまい、単項式ではなくなってしまう。
@@ -60,11 +60,11 @@ func IsMonomial(node Expression) bool {
 			}
 		}
 		return false
-	case *SqrtExpression:
+	case *Sqrt:
 		return false
 
 	// 加算減算は多項式であって、単項式ではない
-	case *AddExpression, *SubtractExpression:
+	case *Add, *Subtract:
 		return false
 	default:
 		return false
@@ -109,7 +109,7 @@ func GetDegree(node Expression) (int, bool) {
 		if _, ok := factor.(*Variable); ok {
 			degree += 1
 		}
-		if powerExpr, ok := factor.(*PowerExpression); ok {
+		if powerExpr, ok := factor.(*Power); ok {
 			exponentValue, ok := powerExpr.Right.Eval()
 			if !ok {
 				return 0, false

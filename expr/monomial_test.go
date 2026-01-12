@@ -23,7 +23,7 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "simple multiplication: 2 * 3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -34,8 +34,8 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "nested multiplication: (2 * 3) * 4",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -49,9 +49,9 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "deeply nested: ((2 * 3) * 4) * 5",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(2),
 						NewConstant(3),
 					),
@@ -68,8 +68,8 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "variables and constants: 2 * x * y",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -83,9 +83,9 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "complex monomial: 3 * x * y * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(3),
 						NewVariable("x"),
 					),
@@ -102,12 +102,12 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "addition only: 2 + 3",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
 			expected: []Expression{
-				NewAddExpression(
+				NewAdd(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -115,12 +115,12 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "division only: 10 / 2",
-			expr: NewDivideExpression(
+			expr: NewDivide(
 				NewConstant(10),
 				NewConstant(2),
 			),
 			expected: []Expression{
-				NewDivideExpression(
+				NewDivide(
 					NewConstant(10),
 					NewConstant(2),
 				),
@@ -128,12 +128,12 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "subtraction only: 5 - 3",
-			expr: NewSubtractExpression(
+			expr: NewSubtract(
 				NewConstant(5),
 				NewConstant(3),
 			),
 			expected: []Expression{
-				NewSubtractExpression(
+				NewSubtract(
 					NewConstant(5),
 					NewConstant(3),
 				),
@@ -141,15 +141,15 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "multiplication with addition: (2 + 3) * 4",
-			expr: NewMultiplyExpression(
-				NewAddExpression(
+			expr: NewMultiply(
+				NewAdd(
 					NewConstant(2),
 					NewConstant(3),
 				),
 				NewConstant(4),
 			),
 			expected: []Expression{
-				NewAddExpression(
+				NewAdd(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -158,12 +158,12 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "power expression: x^2",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(2),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -171,16 +171,16 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "multiplication with power: 3 * x^2",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
 			),
 			expected: []Expression{
 				NewConstant(3),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -188,21 +188,21 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "sqrt expression: sqrt(x)",
-			expr: NewSqrtExpression(
+			expr: NewSqrt(
 				NewVariable("x"),
 			),
 			expected: []Expression{
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			},
 		},
 		{
 			name: "multiplication with sqrt: 2 * sqrt(x) * y",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
-					NewSqrtExpression(
+					NewSqrt(
 						NewVariable("x"),
 					),
 				),
@@ -210,7 +210,7 @@ func TestSplitToFactors(t *testing.T) {
 			),
 			expected: []Expression{
 				NewConstant(2),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 				NewVariable("y"),
@@ -218,12 +218,12 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "nth root expression: cbrt(8)",
-			expr: NewNthRootExpression(
+			expr: NewNthRoot(
 				NewConstant(8),
 				3,
 			),
 			expected: []Expression{
-				NewNthRootExpression(
+				NewNthRoot(
 					NewConstant(8),
 					3,
 				),
@@ -231,16 +231,16 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "nested power: (x^2)^3",
-			expr: NewPowerExpression(
-				NewPowerExpression(
+			expr: NewPower(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
 				NewConstant(3),
 			),
 			expected: []Expression{
-				NewPowerExpression(
-					NewPowerExpression(
+				NewPower(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
@@ -250,15 +250,15 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "power of sqrt: (sqrt(x))^2",
-			expr: NewPowerExpression(
-				NewSqrtExpression(
+			expr: NewPower(
+				NewSqrt(
 					NewVariable("x"),
 				),
 				NewConstant(2),
 			),
 			expected: []Expression{
-				NewPowerExpression(
-					NewSqrtExpression(
+				NewPower(
+					NewSqrt(
 						NewVariable("x"),
 					),
 					NewConstant(2),
@@ -267,15 +267,15 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "sqrt of power: sqrt(x^2)",
-			expr: NewSqrtExpression(
-				NewPowerExpression(
+			expr: NewSqrt(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
 			),
 			expected: []Expression{
-				NewSqrtExpression(
-					NewPowerExpression(
+				NewSqrt(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
@@ -284,32 +284,32 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "multiple powers: x^2 * y^3 * z^4",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewPowerExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
-					NewPowerExpression(
+					NewPower(
 						NewVariable("y"),
 						NewConstant(3),
 					),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("z"),
 					NewConstant(4),
 				),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("y"),
 					NewConstant(3),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("z"),
 					NewConstant(4),
 				),
@@ -317,20 +317,20 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "different roots: sqrt(x) * cbrt(y)",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("y"),
 					3,
 				),
 			),
 			expected: []Expression{
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("y"),
 					3,
 				),
@@ -338,16 +338,16 @@ func TestSplitToFactors(t *testing.T) {
 		},
 		{
 			name: "complex: 2 * x^2 * sqrt(y) * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(2),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
 					),
-					NewSqrtExpression(
+					NewSqrt(
 						NewVariable("y"),
 					),
 				),
@@ -355,11 +355,11 @@ func TestSplitToFactors(t *testing.T) {
 			),
 			expected: []Expression{
 				NewConstant(2),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("y"),
 				),
 				NewVariable("z"),
@@ -403,7 +403,7 @@ func TestCombineFactors(t *testing.T) {
 				NewConstant(2),
 				NewConstant(3),
 			},
-			expected: NewMultiplyExpression(
+			expected: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -415,8 +415,8 @@ func TestCombineFactors(t *testing.T) {
 				NewConstant(3),
 				NewConstant(4),
 			},
-			expected: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expected: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -431,9 +431,9 @@ func TestCombineFactors(t *testing.T) {
 				NewConstant(4),
 				NewConstant(5),
 			},
-			expected: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expected: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(2),
 						NewConstant(3),
 					),
@@ -449,8 +449,8 @@ func TestCombineFactors(t *testing.T) {
 				NewVariable("x"),
 				NewVariable("y"),
 			},
-			expected: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expected: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -460,14 +460,14 @@ func TestCombineFactors(t *testing.T) {
 		{
 			name: "complex factors with addition: (2 + 3) * x",
 			factors: []Expression{
-				NewAddExpression(
+				NewAdd(
 					NewConstant(2),
 					NewConstant(3),
 				),
 				NewVariable("x"),
 			},
-			expected: NewMultiplyExpression(
-				NewAddExpression(
+			expected: NewMultiply(
+				NewAdd(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -513,15 +513,15 @@ func TestRoundTripSplitCombineFactors(t *testing.T) {
 	}{
 		{
 			name: "simple multiplication: 2 * 3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
 		},
 		{
 			name: "nested multiplication: (2 * 3) * 4",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -530,8 +530,8 @@ func TestRoundTripSplitCombineFactors(t *testing.T) {
 		},
 		{
 			name: "variables and constants: 2 * x * y",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -573,7 +573,7 @@ func TestCountFactors(t *testing.T) {
 		},
 		{
 			name: "simple multiplication: 2 * 3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -581,8 +581,8 @@ func TestCountFactors(t *testing.T) {
 		},
 		{
 			name: "nested multiplication: (2 * 3) * 4",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -592,9 +592,9 @@ func TestCountFactors(t *testing.T) {
 		},
 		{
 			name: "deeply nested: ((2 * 3) * 4) * 5",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(2),
 						NewConstant(3),
 					),
@@ -606,7 +606,7 @@ func TestCountFactors(t *testing.T) {
 		},
 		{
 			name: "addition only: 2 + 3",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -614,8 +614,8 @@ func TestCountFactors(t *testing.T) {
 		},
 		{
 			name: "variables: x * y * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -655,7 +655,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "simple multiplication: 2 * x",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewVariable("x"),
 			),
@@ -663,8 +663,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "nested multiplication: 2 * x * y",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -674,7 +674,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "addition (not a monomial)",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -682,7 +682,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "subtraction (not a monomial)",
-			expr: NewSubtractExpression(
+			expr: NewSubtract(
 				NewConstant(5),
 				NewConstant(3),
 			),
@@ -690,8 +690,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "multiplication containing addition (not a monomial)",
-			expr: NewMultiplyExpression(
-				NewAddExpression(
+			expr: NewMultiply(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -701,7 +701,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "division with constant denominator",
-			expr: NewDivideExpression(
+			expr: NewDivide(
 				NewVariable("x"),
 				NewConstant(2),
 			),
@@ -709,7 +709,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "division with variable denominator (not a monomial in strict sense)",
-			expr: NewDivideExpression(
+			expr: NewDivide(
 				NewConstant(2),
 				NewVariable("x"),
 			),
@@ -717,9 +717,9 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "complex monomial: 3 * x * y * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(3),
 						NewVariable("x"),
 					),
@@ -731,7 +731,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power expression: x^2",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(2),
 			),
@@ -739,9 +739,9 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power with coefficient: 3 * x^2",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -750,14 +750,14 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "square root: sqrt(x)",
-			expr: NewSqrtExpression(
+			expr: NewSqrt(
 				NewVariable("x"),
 			),
 			expected: false,
 		},
 		{
 			name: "nth root: cbrt(x)",
-			expr: NewNthRootExpression(
+			expr: NewNthRoot(
 				NewVariable("x"),
 				3,
 			),
@@ -765,9 +765,9 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "coefficient with sqrt: 2 * sqrt(x)",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			),
@@ -775,8 +775,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power and variable: x^2 * y",
-			expr: NewMultiplyExpression(
-				NewPowerExpression(
+			expr: NewMultiply(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -786,8 +786,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "nested power: (x^2)^3",
-			expr: NewPowerExpression(
-				NewPowerExpression(
+			expr: NewPower(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -797,8 +797,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power of sqrt: (sqrt(x))^2",
-			expr: NewPowerExpression(
-				NewSqrtExpression(
+			expr: NewPower(
+				NewSqrt(
 					NewVariable("x"),
 				),
 				NewConstant(2),
@@ -807,8 +807,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "sqrt of power: sqrt(x^2)",
-			expr: NewSqrtExpression(
-				NewPowerExpression(
+			expr: NewSqrt(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -817,11 +817,11 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "multiple roots: sqrt(x) * sqrt(y)",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("y"),
 				),
 			),
@@ -829,11 +829,11 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "different root degrees: sqrt(x) * cbrt(x)",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					3,
 				),
@@ -842,16 +842,16 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "complex monomial: 2 * x^2 * sqrt(y) * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(2),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
 					),
-					NewSqrtExpression(
+					NewSqrt(
 						NewVariable("y"),
 					),
 				),
@@ -861,7 +861,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power with zero exponent: x^0",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(0),
 			),
@@ -869,7 +869,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power with one exponent: x^1",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(1),
 			),
@@ -877,7 +877,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "negative power: x^(-2) (not a monomial in strict sense)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(-2),
 			),
@@ -885,9 +885,9 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "fractional power: x^(1/2)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
-				NewDivideExpression(
+				NewDivide(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -896,7 +896,7 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power with variable exponent: x^y (not a standard monomial)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewVariable("y"),
 			),
@@ -904,8 +904,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "sqrt of complex expression: sqrt(x + 1) (not a monomial)",
-			expr: NewSqrtExpression(
-				NewAddExpression(
+			expr: NewSqrt(
+				NewAdd(
 					NewVariable("x"),
 					NewConstant(1),
 				),
@@ -914,8 +914,8 @@ func TestIsMonomial(t *testing.T) {
 		},
 		{
 			name: "power of sum: (x + y)^2 (not a monomial)",
-			expr: NewPowerExpression(
-				NewAddExpression(
+			expr: NewPower(
+				NewAdd(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -968,28 +968,28 @@ func TestMapFactors(t *testing.T) {
 		},
 		{
 			name: "double constants in multiplication",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
 			fn: doubleConstants,
-			expected: NewMultiplyExpression(
+			expected: NewMultiply(
 				NewConstant(4),
 				NewConstant(6),
 			),
 		},
 		{
 			name: "double constants in nested multiplication",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
 				NewConstant(4),
 			),
 			fn: doubleConstants,
-			expected: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expected: NewMultiply(
+				NewMultiply(
 					NewConstant(4),
 					NewConstant(6),
 				),
@@ -998,28 +998,28 @@ func TestMapFactors(t *testing.T) {
 		},
 		{
 			name: "replace variable x with y",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewVariable("x"),
 			),
 			fn: replaceXWithY,
-			expected: NewMultiplyExpression(
+			expected: NewMultiply(
 				NewConstant(2),
 				NewVariable("y"),
 			),
 		},
 		{
 			name: "replace multiple x variables",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewVariable("x"),
 					NewConstant(3),
 				),
 				NewVariable("x"),
 			),
 			fn: replaceXWithY,
-			expected: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expected: NewMultiply(
+				NewMultiply(
 					NewVariable("y"),
 					NewConstant(3),
 				),
@@ -1061,7 +1061,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "coefficient with variable: 3 * x",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
 				NewVariable("x"),
 			),
@@ -1070,7 +1070,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "multiple constants: 2 * 3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -1079,8 +1079,8 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "coefficient with multiple variables: 5 * x * y",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(5),
 					NewVariable("x"),
 				),
@@ -1091,7 +1091,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "variables only: x * y",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewVariable("x"),
 				NewVariable("y"),
 			),
@@ -1100,8 +1100,8 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "nested constants: (2 * 3) * x",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -1112,7 +1112,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "power expression: x^2",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(2),
 			),
@@ -1121,9 +1121,9 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "coefficient with power: 4 * x^3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(4),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(3),
 				),
@@ -1133,7 +1133,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "sqrt expression: sqrt(x)",
-			expr: NewSqrtExpression(
+			expr: NewSqrt(
 				NewVariable("x"),
 			),
 			expected: 1,
@@ -1141,9 +1141,9 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "coefficient with sqrt: 3 * sqrt(x)",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			),
@@ -1152,8 +1152,8 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "complex coefficient: 2 * 3 * x (coefficient 6)",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -1164,15 +1164,15 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "coefficient with multiple powers: 5 * x^2 * y^3",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(5),
-					NewPowerExpression(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("y"),
 					NewConstant(3),
 				),
@@ -1182,15 +1182,15 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "coefficient with power and sqrt: 2 * x^2 * sqrt(y)",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
-					NewPowerExpression(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("y"),
 				),
 			),
@@ -1199,7 +1199,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "fractional coefficient: 0.5 * x",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(0.5),
 				NewVariable("x"),
 			),
@@ -1208,7 +1208,7 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "negative coefficient: -3 * x",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(-3),
 				NewVariable("x"),
 			),
@@ -1217,10 +1217,10 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "nested power coefficient: 2 * (x^2)^3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
-				NewPowerExpression(
-					NewPowerExpression(
+				NewPower(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
@@ -1232,9 +1232,9 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "power with zero exponent: 3 * x^0 (mathematically 3 * 1 = 3)",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(0),
 				),
@@ -1244,9 +1244,9 @@ func TestGetCoefficient(t *testing.T) {
 		},
 		{
 			name: "nth root coefficient: 4 * cbrt(x)",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(4),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					3,
 				),
@@ -1294,7 +1294,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "coefficient with variable: 3 * x",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
 				NewVariable("x"),
 			),
@@ -1303,7 +1303,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "two variables: x * y",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewVariable("x"),
 				NewVariable("y"),
 			),
@@ -1312,8 +1312,8 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "coefficient with two variables: 2 * x * y",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -1324,8 +1324,8 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "three variables: x * y * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -1336,9 +1336,9 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "coefficient with three variables: 5 * x * y * z",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(5),
 						NewVariable("x"),
 					),
@@ -1351,7 +1351,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "only constants: 2 * 3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -1360,7 +1360,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "power expression: x^2 (mathematically degree 2)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(2),
 			),
@@ -1369,7 +1369,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "power expression: x^3 (mathematically degree 3)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(3),
 			),
@@ -1378,9 +1378,9 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "coefficient with power: 2 * x^3 (degree 3)",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(3),
 				),
@@ -1390,12 +1390,12 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "two powers: x^2 * y^3 (mathematically degree 2+3=5)",
-			expr: NewMultiplyExpression(
-				NewPowerExpression(
+			expr: NewMultiply(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("y"),
 					NewConstant(3),
 				),
@@ -1405,8 +1405,8 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "power and variable: x^2 * y (mathematically degree 2+1=3)",
-			expr: NewMultiplyExpression(
-				NewPowerExpression(
+			expr: NewMultiply(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -1417,16 +1417,16 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "complex: 3 * x^2 * y^3 * z (mathematically degree 2+3+1=6)",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(3),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
 					),
-					NewPowerExpression(
+					NewPower(
 						NewVariable("y"),
 						NewConstant(3),
 					),
@@ -1438,7 +1438,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "power with zero exponent: x^0 (degree 0)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(0),
 			),
@@ -1447,7 +1447,7 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "power with one exponent: x^1 (degree 1)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(1),
 			),
@@ -1456,8 +1456,8 @@ func TestGetDegree(t *testing.T) {
 		},
 		{
 			name: "nested power: (x^2)^3 (mathematically x^6, degree 6)",
-			expr: NewPowerExpression(
-				NewPowerExpression(
+			expr: NewPower(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -1495,7 +1495,7 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 	}{
 		{
 			name: "sqrt as x^(1/2): degree 0.5",
-			expr: NewSqrtExpression(
+			expr: NewSqrt(
 				NewVariable("x"),
 			),
 			expected:  0.5,
@@ -1503,7 +1503,7 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 		},
 		{
 			name: "cube root as x^(1/3): degree 1/3",
-			expr: NewNthRootExpression(
+			expr: NewNthRoot(
 				NewVariable("x"),
 				3,
 			),
@@ -1512,7 +1512,7 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 		},
 		{
 			name: "fourth root as x^(1/4): degree 1/4",
-			expr: NewNthRootExpression(
+			expr: NewNthRoot(
 				NewVariable("x"),
 				4,
 			),
@@ -1521,12 +1521,12 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 		},
 		{
 			name: "x^2 * sqrt(x) = x^(5/2): degree 2.5",
-			expr: NewMultiplyExpression(
-				NewPowerExpression(
+			expr: NewMultiply(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			),
@@ -1535,11 +1535,11 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 		},
 		{
 			name: "sqrt(x) * sqrt(x) = x: degree 1",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			),
@@ -1548,11 +1548,11 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 		},
 		{
 			name: "sqrt(x) * cbrt(x) = x^(1/2 + 1/3) = x^(5/6): degree 5/6",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					3,
 				),
@@ -1562,11 +1562,11 @@ func TestGetDegreeWithFractionalExponents(t *testing.T) {
 		},
 		{
 			name: "sqrt(x) * sqrt(y): total degree 0.5 + 0.5 = 1",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("y"),
 				),
 			),
@@ -1595,7 +1595,7 @@ func TestMonomialSimplification(t *testing.T) {
 	}{
 		{
 			name: "x^0 simplifies to 1",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(0),
 			),
@@ -1604,7 +1604,7 @@ func TestMonomialSimplification(t *testing.T) {
 		},
 		{
 			name: "x^1 simplifies to x",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(1),
 			),
@@ -1613,8 +1613,8 @@ func TestMonomialSimplification(t *testing.T) {
 		},
 		{
 			name: "(sqrt(x))^2 simplifies to x",
-			expr: NewPowerExpression(
-				NewSqrtExpression(
+			expr: NewPower(
+				NewSqrt(
 					NewVariable("x"),
 				),
 				NewConstant(2),
@@ -1624,8 +1624,8 @@ func TestMonomialSimplification(t *testing.T) {
 		},
 		{
 			name: "sqrt(x^2) simplifies to |x| or x (for positive x)",
-			expr: NewSqrtExpression(
-				NewPowerExpression(
+			expr: NewSqrt(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -1635,14 +1635,14 @@ func TestMonomialSimplification(t *testing.T) {
 		},
 		{
 			name: "(x^2)^3 simplifies to x^6",
-			expr: NewPowerExpression(
-				NewPowerExpression(
+			expr: NewPower(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
 				NewConstant(3),
 			),
-			expected: NewPowerExpression(
+			expected: NewPower(
 				NewVariable("x"),
 				NewConstant(6),
 			),
@@ -1650,7 +1650,7 @@ func TestMonomialSimplification(t *testing.T) {
 		},
 		{
 			name: "1 * x simplifies to x",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(1),
 				NewVariable("x"),
 			),
@@ -1659,7 +1659,7 @@ func TestMonomialSimplification(t *testing.T) {
 		},
 		{
 			name: "0 * x simplifies to 0",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(0),
 				NewVariable("x"),
 			),
@@ -1687,7 +1687,7 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 	}{
 		{
 			name: "2^3 = 8",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -1697,7 +1697,7 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "sqrt(4) = 2",
-			expr: NewSqrtExpression(
+			expr: NewSqrt(
 				NewConstant(4),
 			),
 			expected: 2.0,
@@ -1706,7 +1706,7 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "cbrt(8) = 2",
-			expr: NewNthRootExpression(
+			expr: NewNthRoot(
 				NewConstant(8),
 				3,
 			),
@@ -1716,8 +1716,8 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "(sqrt(2))^2 ≈ 2",
-			expr: NewPowerExpression(
-				NewSqrtExpression(
+			expr: NewPower(
+				NewSqrt(
 					NewConstant(2),
 				),
 				NewConstant(2),
@@ -1728,8 +1728,8 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "sqrt(2^2) = 2",
-			expr: NewSqrtExpression(
-				NewPowerExpression(
+			expr: NewSqrt(
+				NewPower(
 					NewConstant(2),
 					NewConstant(2),
 				),
@@ -1740,8 +1740,8 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "(2^2)^3 = 64",
-			expr: NewPowerExpression(
-				NewPowerExpression(
+			expr: NewPower(
+				NewPower(
 					NewConstant(2),
 					NewConstant(2),
 				),
@@ -1753,9 +1753,9 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "2 * 3^2 = 18",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
-				NewPowerExpression(
+				NewPower(
 					NewConstant(3),
 					NewConstant(2),
 				),
@@ -1766,11 +1766,11 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "sqrt(16) * cbrt(8) = 4 * 2 = 8",
-			expr: NewMultiplyExpression(
-				NewSqrtExpression(
+			expr: NewMultiply(
+				NewSqrt(
 					NewConstant(16),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewConstant(8),
 					3,
 				),
@@ -1781,7 +1781,7 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "2^0 = 1",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewConstant(2),
 				NewConstant(0),
 			),
@@ -1791,7 +1791,7 @@ func TestEvalWithPowerAndRoot(t *testing.T) {
 		},
 		{
 			name: "2^(-2) = 0.25",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewConstant(2),
 				NewConstant(-2),
 			),

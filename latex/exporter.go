@@ -26,13 +26,13 @@ func (e *Exporter) Export(expression expr.Expression) (LatexNode, error) {
 	switch exp := expression.(type) {
 	case *expr.Constant:
 		return e.exportConstant(exp), nil
-	case *expr.AddExpression:
+	case *expr.Add:
 		return e.exportBinaryOp(exp, PLUS, "+")
-	case *expr.SubtractExpression:
+	case *expr.Subtract:
 		return e.exportBinaryOp(exp, MINUS, "-")
-	case *expr.MultiplyExpression:
+	case *expr.Multiply:
 		return e.exportBinaryOp(exp, MULTIPLY, "*")
-	case *expr.DivideExpression:
+	case *expr.Divide:
 		return e.exportBinaryOp(exp, DIVIDE, "/")
 	case *expr.Variable:
 		return e.exportVariable(exp), nil

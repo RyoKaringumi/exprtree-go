@@ -71,15 +71,15 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error)
 	// Create appropriate Expression based on operator
 	switch node.Operator.Type {
 	case PLUS:
-		return expr.NewAddExpression(left, right), nil
+		return expr.NewAdd(left, right), nil
 	case MINUS:
-		return expr.NewSubtractExpression(left, right), nil
+		return expr.NewSubtract(left, right), nil
 	case MULTIPLY:
-		return expr.NewMultiplyExpression(left, right), nil
+		return expr.NewMultiply(left, right), nil
 	case DIVIDE:
-		return expr.NewDivideExpression(left, right), nil
+		return expr.NewDivide(left, right), nil
 	case CARET:
-		return expr.NewPowerExpression(left, right), nil
+		return expr.NewPower(left, right), nil
 	default:
 		return nil, fmt.Errorf("unknown operator: %v", node.Operator.Type)
 	}
@@ -98,7 +98,7 @@ func (c *Converter) convertEqual(node *EqualNode) (expr.Expression, error) {
 		return nil, fmt.Errorf("failed to convert right operand: %w", err)
 	}
 
-	return expr.NewEqualExpression(left, right), nil
+	return expr.NewEqual(left, right), nil
 }
 
 // convertGroup converts a GroupNode by converting its inner expression
@@ -138,11 +138,11 @@ func (c *Converter) convertSqrt(node *CommandNode) (expr.Expression, error) {
 			return nil, fmt.Errorf("sqrt optional argument must be a constant number")
 		}
 
-		return expr.NewNthRootExpression(argument, constant.Value.Value), nil
+		return expr.NewNthRoot(argument, constant.Value.Value), nil
 	}
 
 	// Default to square root (N=2)
-	return expr.NewSqrtExpression(argument), nil
+	return expr.NewSqrt(argument), nil
 }
 
 // Errors returns the list of conversion errors

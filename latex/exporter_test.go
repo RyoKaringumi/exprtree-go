@@ -34,7 +34,7 @@ func TestExportAddExpression(t *testing.T) {
 	// Create: 2 + 3
 	left := &expr.Constant{Value: expr.NumberValue{Value: 2}}
 	right := &expr.Constant{Value: expr.NumberValue{Value: 3}}
-	addExpr := expr.NewAddExpression(left, right)
+	addExpr := expr.NewAdd(left, right)
 
 	// Export to LaTeX AST
 	exporter := NewExporter()
@@ -69,12 +69,12 @@ func TestExportAddExpression(t *testing.T) {
 
 func TestExportComplexExpression(t *testing.T) {
 	// Create: (2 + 3) * 4
-	left := expr.NewAddExpression(
+	left := expr.NewAdd(
 		&expr.Constant{Value: expr.NumberValue{Value: 2}},
 		&expr.Constant{Value: expr.NumberValue{Value: 3}},
 	)
 	right := &expr.Constant{Value: expr.NumberValue{Value: 4}}
-	multExpr := expr.NewMultiplyExpression(left, right)
+	multExpr := expr.NewMultiply(left, right)
 
 	// Export to LaTeX AST
 	exporter := NewExporter()
@@ -105,22 +105,22 @@ func TestExportAllOperators(t *testing.T) {
 	}{
 		{
 			name:     "Addition",
-			expr:     expr.NewAddExpression(&expr.Constant{Value: expr.NumberValue{Value: 1}}, &expr.Constant{Value: expr.NumberValue{Value: 2}}),
+			expr:     expr.NewAdd(&expr.Constant{Value: expr.NumberValue{Value: 1}}, &expr.Constant{Value: expr.NumberValue{Value: 2}}),
 			expected: PLUS,
 		},
 		{
 			name:     "Subtraction",
-			expr:     expr.NewSubtractExpression(&expr.Constant{Value: expr.NumberValue{Value: 5}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
+			expr:     expr.NewSubtract(&expr.Constant{Value: expr.NumberValue{Value: 5}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
 			expected: MINUS,
 		},
 		{
 			name:     "Multiplication",
-			expr:     expr.NewMultiplyExpression(&expr.Constant{Value: expr.NumberValue{Value: 2}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
+			expr:     expr.NewMultiply(&expr.Constant{Value: expr.NumberValue{Value: 2}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
 			expected: MULTIPLY,
 		},
 		{
 			name:     "Division",
-			expr:     expr.NewDivideExpression(&expr.Constant{Value: expr.NumberValue{Value: 10}}, &expr.Constant{Value: expr.NumberValue{Value: 2}}),
+			expr:     expr.NewDivide(&expr.Constant{Value: expr.NumberValue{Value: 10}}, &expr.Constant{Value: expr.NumberValue{Value: 2}}),
 			expected: DIVIDE,
 		},
 	}

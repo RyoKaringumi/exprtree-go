@@ -37,7 +37,7 @@ func TestConvert_Addition(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	addExpr, ok := expression.(*expr.AddExpression)
+	addExpr, ok := expression.(*expr.Add)
 	if !ok {
 		t.Fatalf("expected AddExpression, got %T", expression)
 	}
@@ -67,7 +67,7 @@ func TestConvert_Subtraction(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	subExpr, ok := expression.(*expr.SubtractExpression)
+	subExpr, ok := expression.(*expr.Subtract)
 	if !ok {
 		t.Fatalf("expected SubtractExpression, got %T", expression)
 	}
@@ -97,7 +97,7 @@ func TestConvert_Multiplication(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	mulExpr, ok := expression.(*expr.MultiplyExpression)
+	mulExpr, ok := expression.(*expr.Multiply)
 	if !ok {
 		t.Fatalf("expected MultiplyExpression, got %T", expression)
 	}
@@ -127,7 +127,7 @@ func TestConvert_Division(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	divExpr, ok := expression.(*expr.DivideExpression)
+	divExpr, ok := expression.(*expr.Divide)
 	if !ok {
 		t.Fatalf("expected DivideExpression, got %T", expression)
 	}
@@ -267,7 +267,7 @@ func TestConvert_Power(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	powExpr, ok := expression.(*expr.PowerExpression)
+	powExpr, ok := expression.(*expr.Power)
 	if !ok {
 		t.Fatalf("expected PowerExpression, got %T", expression)
 	}
@@ -298,7 +298,7 @@ func TestConvert_SqrtBasic(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	sqrtExpr, ok := expression.(*expr.SqrtExpression)
+	sqrtExpr, ok := expression.(*expr.Sqrt)
 	if !ok {
 		t.Fatalf("expected SqrtExpression, got %T", expression)
 	}
@@ -334,7 +334,7 @@ func TestConvert_SqrtWithOptional(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	sqrtExpr, ok := expression.(*expr.SqrtExpression)
+	sqrtExpr, ok := expression.(*expr.Sqrt)
 	if !ok {
 		t.Fatalf("expected SqrtExpression, got %T", expression)
 	}
@@ -439,7 +439,7 @@ func TestConvert_EqualBasic(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}
@@ -474,7 +474,7 @@ func TestConvert_EqualTrue(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}
@@ -509,7 +509,7 @@ func TestConvert_EqualFalse(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}
@@ -548,7 +548,7 @@ func TestConvert_EqualFloatingPoint(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}
@@ -591,7 +591,7 @@ func TestConvert_EqualComplex(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}
@@ -638,7 +638,7 @@ func TestConvert_EqualWithGroups(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}
@@ -681,7 +681,7 @@ func TestConvert_EqualNested(t *testing.T) {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.EqualExpression)
+	equalExpr, ok := expression.(*expr.Equal)
 	if !ok {
 		t.Fatalf("expected EqualExpression, got %T", expression)
 	}

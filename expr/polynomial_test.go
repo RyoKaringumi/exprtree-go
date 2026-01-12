@@ -26,7 +26,7 @@ func TestSplitToTerms(t *testing.T) {
 		// 加算は項の和なので、2+3 は2つの項 (2 と 3) に分解される。
 		{
 			name: "simple addition: 2 + 3",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -38,8 +38,8 @@ func TestSplitToTerms(t *testing.T) {
 		// 加算のネストは分解すると平坦化できる： (1+2)+3 -> 1,2,3 の3項。
 		{
 			name: "nested addition: (1 + 2) + 3",
-			expr: NewAddExpression(
-				NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -54,9 +54,9 @@ func TestSplitToTerms(t *testing.T) {
 		// 多重にネストされた加算も平坦化でき、各定数が独立した項となる。
 		{
 			name: "deeply nested: ((1 + 2) + 3) + 4",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewAdd(
 						NewConstant(1),
 						NewConstant(2),
 					),
@@ -75,22 +75,22 @@ func TestSplitToTerms(t *testing.T) {
 		// したがって 2*x + 3*y は項 2*x と 3*y に分解される。
 		{
 			name: "addition with multiplication: 2*x + 3*y",
-			expr: NewAddExpression(
-				NewMultiplyExpression(
+			expr: NewAdd(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(3),
 					NewVariable("y"),
 				),
 			),
 			expected: []Expression{
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(3),
 					NewVariable("y"),
 				),
@@ -100,22 +100,22 @@ func TestSplitToTerms(t *testing.T) {
 		// (x + 2*y) + (3 + z) -> x, 2*y, 3, z
 		{
 			name: "complex expression: (x + 2*y) + (3 + z)",
-			expr: NewAddExpression(
-				NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
 					NewVariable("x"),
-					NewMultiplyExpression(
+					NewMultiply(
 						NewConstant(2),
 						NewVariable("y"),
 					),
 				),
-				NewAddExpression(
+				NewAdd(
 					NewConstant(3),
 					NewVariable("z"),
 				),
 			),
 			expected: []Expression{
 				NewVariable("x"),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("y"),
 				),
@@ -127,12 +127,12 @@ func TestSplitToTerms(t *testing.T) {
 		// したがって乗法のみの 2*3 は1つの項として返される。
 		{
 			name: "multiplication only: 2 * 3",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
 			expected: []Expression{
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(2),
 					NewConstant(3),
 				),
@@ -141,12 +141,12 @@ func TestSplitToTerms(t *testing.T) {
 		// 除法のみも加算を含まないため単一項として扱われる。
 		{
 			name: "division only: 10 / 2",
-			expr: NewDivideExpression(
+			expr: NewDivide(
 				NewConstant(10),
 				NewConstant(2),
 			),
 			expected: []Expression{
-				NewDivideExpression(
+				NewDivide(
 					NewConstant(10),
 					NewConstant(2),
 				),
@@ -156,12 +156,12 @@ func TestSplitToTerms(t *testing.T) {
 		// （別途分解ルールがあれば変わるが、現在の期待は単一項）
 		{
 			name: "subtraction only: 5 - 3",
-			expr: NewSubtractExpression(
+			expr: NewSubtract(
 				NewConstant(5),
 				NewConstant(3),
 			),
 			expected: []Expression{
-				NewSubtractExpression(
+				NewSubtract(
 					NewConstant(5),
 					NewConstant(3),
 				),
@@ -170,15 +170,15 @@ func TestSplitToTerms(t *testing.T) {
 		// べき乗は項としてそのまま扱われる。x^2 + x は項 x^2 と項 x に分離される。
 		{
 			name: "power expression in addition: x^2 + x",
-			expr: NewAddExpression(
-				NewPowerExpression(
+			expr: NewAdd(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
 				NewVariable("x"),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -188,15 +188,15 @@ func TestSplitToTerms(t *testing.T) {
 		// 根号も式として独立した項になり得る。x + sqrt(x) は項 x と項 sqrt(x) に分解される。
 		{
 			name: "sqrt in polynomial: x + sqrt(x)",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewVariable("x"),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			),
 			expected: []Expression{
 				NewVariable("x"),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			},
@@ -205,16 +205,16 @@ func TestSplitToTerms(t *testing.T) {
 		// 3*x^2 + 2*x + 1 は項 (3*x^2), (2*x), (1) に分解される。
 		{
 			name: "complex polynomial with power: 3*x^2 + 2*x + 1",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewMultiplyExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewMultiply(
 						NewConstant(3),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
 					),
-					NewMultiplyExpression(
+					NewMultiply(
 						NewConstant(2),
 						NewVariable("x"),
 					),
@@ -222,14 +222,14 @@ func TestSplitToTerms(t *testing.T) {
 				NewConstant(1),
 			),
 			expected: []Expression{
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(3),
-					NewPowerExpression(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -238,16 +238,16 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "nth root in addition: x + cbrt(x)",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewVariable("x"),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					3,
 				),
 			),
 			expected: []Expression{
 				NewVariable("x"),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					3,
 				),
@@ -255,13 +255,13 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "quadratic: x^2 + 2*x + 1",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewPowerExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
-					NewMultiplyExpression(
+					NewMultiply(
 						NewConstant(2),
 						NewVariable("x"),
 					),
@@ -269,11 +269,11 @@ func TestSplitToTerms(t *testing.T) {
 				NewConstant(1),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -282,14 +282,14 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "cubic: x^3 + x^2 + x + 1",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewAddExpression(
-						NewPowerExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewAdd(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(3),
 						),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
@@ -299,11 +299,11 @@ func TestSplitToTerms(t *testing.T) {
 				NewConstant(1),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(3),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -313,32 +313,32 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "multivariate: x^2 + x*y + y^2",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewPowerExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
-					NewMultiplyExpression(
+					NewMultiply(
 						NewVariable("x"),
 						NewVariable("y"),
 					),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("y"),
 					NewConstant(2),
 				),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("y"),
 					NewConstant(2),
 				),
@@ -346,61 +346,61 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "with multiple roots: sqrt(x) + sqrt(y) + sqrt(z)",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewSqrtExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewSqrt(
 						NewVariable("x"),
 					),
-					NewSqrtExpression(
+					NewSqrt(
 						NewVariable("y"),
 					),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("z"),
 				),
 			),
 			expected: []Expression{
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("y"),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("z"),
 				),
 			},
 		},
 		{
 			name: "mixed powers and roots: x^3 + x^2 + sqrt(x) + 1",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewAddExpression(
-						NewPowerExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewAdd(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(3),
 						),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
 					),
-					NewSqrtExpression(
+					NewSqrt(
 						NewVariable("x"),
 					),
 				),
 				NewConstant(1),
 			),
 			expected: []Expression{
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(3),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 				NewConstant(1),
@@ -408,9 +408,9 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "nested power in polynomial: (x^2)^3 + x",
-			expr: NewAddExpression(
-				NewPowerExpression(
-					NewPowerExpression(
+			expr: NewAdd(
+				NewPower(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
@@ -419,8 +419,8 @@ func TestSplitToTerms(t *testing.T) {
 				NewVariable("x"),
 			),
 			expected: []Expression{
-				NewPowerExpression(
-					NewPowerExpression(
+				NewPower(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
@@ -431,30 +431,30 @@ func TestSplitToTerms(t *testing.T) {
 		},
 		{
 			name: "different nth roots: sqrt(x) + cbrt(x) + x^(1/4)",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewSqrtExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewSqrt(
 						NewVariable("x"),
 					),
-					NewNthRootExpression(
+					NewNthRoot(
 						NewVariable("x"),
 						3,
 					),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					4,
 				),
 			),
 			expected: []Expression{
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					3,
 				),
-				NewNthRootExpression(
+				NewNthRoot(
 					NewVariable("x"),
 					4,
 				),
@@ -498,7 +498,7 @@ func TestCombineTerms(t *testing.T) {
 				NewConstant(2),
 				NewConstant(3),
 			},
-			expected: NewAddExpression(
+			expected: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -510,8 +510,8 @@ func TestCombineTerms(t *testing.T) {
 				NewConstant(2),
 				NewConstant(3),
 			},
-			expected: NewAddExpression(
-				NewAddExpression(
+			expected: NewAdd(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -526,9 +526,9 @@ func TestCombineTerms(t *testing.T) {
 				NewConstant(3),
 				NewConstant(4),
 			},
-			expected: NewAddExpression(
-				NewAddExpression(
-					NewAddExpression(
+			expected: NewAdd(
+				NewAdd(
+					NewAdd(
 						NewConstant(1),
 						NewConstant(2),
 					),
@@ -544,8 +544,8 @@ func TestCombineTerms(t *testing.T) {
 				NewVariable("y"),
 				NewConstant(5),
 			},
-			expected: NewAddExpression(
-				NewAddExpression(
+			expected: NewAdd(
+				NewAdd(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -555,21 +555,21 @@ func TestCombineTerms(t *testing.T) {
 		{
 			name: "complex terms: 2*x + 3*y",
 			terms: []Expression{
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(3),
 					NewVariable("y"),
 				),
 			},
-			expected: NewAddExpression(
-				NewMultiplyExpression(
+			expected: NewAdd(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(3),
 					NewVariable("y"),
 				),
@@ -614,15 +614,15 @@ func TestRoundTripSplitCombine(t *testing.T) {
 	}{
 		{
 			name: "simple addition: 2 + 3",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
 		},
 		{
 			name: "nested addition: (1 + 2) + 3",
-			expr: NewAddExpression(
-				NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -631,12 +631,12 @@ func TestRoundTripSplitCombine(t *testing.T) {
 		},
 		{
 			name: "addition with multiplication: 2*x + 3*y",
-			expr: NewAddExpression(
-				NewMultiplyExpression(
+			expr: NewAdd(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
-				NewMultiplyExpression(
+				NewMultiply(
 					NewConstant(3),
 					NewVariable("y"),
 				),
@@ -672,7 +672,7 @@ func TestCountTerms(t *testing.T) {
 		},
 		{
 			name: "simple addition: 2 + 3",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -680,8 +680,8 @@ func TestCountTerms(t *testing.T) {
 		},
 		{
 			name: "nested addition: (1 + 2) + 3",
-			expr: NewAddExpression(
-				NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -691,9 +691,9 @@ func TestCountTerms(t *testing.T) {
 		},
 		{
 			name: "deeply nested: ((1 + 2) + 3) + 4",
-			expr: NewAddExpression(
-				NewAddExpression(
-					NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
+					NewAdd(
 						NewConstant(1),
 						NewConstant(2),
 					),
@@ -705,7 +705,7 @@ func TestCountTerms(t *testing.T) {
 		},
 		{
 			name: "multiplication only",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -743,7 +743,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "multiplication",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
 				NewVariable("x"),
 			),
@@ -751,7 +751,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "division",
-			expr: NewDivideExpression(
+			expr: NewDivide(
 				NewConstant(10),
 				NewConstant(2),
 			),
@@ -759,7 +759,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "subtraction",
-			expr: NewSubtractExpression(
+			expr: NewSubtract(
 				NewConstant(5),
 				NewConstant(3),
 			),
@@ -767,7 +767,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "addition (not a term)",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
@@ -775,8 +775,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "nested multiplication",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
 					NewConstant(2),
 					NewVariable("x"),
 				),
@@ -786,8 +786,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "multiplication containing addition (not a term)",
-			expr: NewMultiplyExpression(
-				NewAddExpression(
+			expr: NewMultiply(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -797,7 +797,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power expression: x^2",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(2),
 			),
@@ -805,9 +805,9 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power with coefficient: 3 * x^2",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(3),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -816,14 +816,14 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "sqrt expression: sqrt(x)",
-			expr: NewSqrtExpression(
+			expr: NewSqrt(
 				NewVariable("x"),
 			),
 			expected: false,
 		},
 		{
 			name: "nth root: cbrt(8)",
-			expr: NewNthRootExpression(
+			expr: NewNthRoot(
 				NewConstant(8),
 				3,
 			),
@@ -831,9 +831,9 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "sqrt with coefficient: 2 * sqrt(x)",
-			expr: NewMultiplyExpression(
+			expr: NewMultiply(
 				NewConstant(2),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("x"),
 				),
 			),
@@ -841,8 +841,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "nested power: (x^2)^3",
-			expr: NewPowerExpression(
-				NewPowerExpression(
+			expr: NewPower(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -852,8 +852,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power of sqrt: (sqrt(x))^2",
-			expr: NewPowerExpression(
-				NewSqrtExpression(
+			expr: NewPower(
+				NewSqrt(
 					NewVariable("x"),
 				),
 				NewConstant(2),
@@ -862,8 +862,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "sqrt of power: sqrt(x^2)",
-			expr: NewSqrtExpression(
-				NewPowerExpression(
+			expr: NewSqrt(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
@@ -872,12 +872,12 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "multiple powers: x^2 * y^3",
-			expr: NewMultiplyExpression(
-				NewPowerExpression(
+			expr: NewMultiply(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewPowerExpression(
+				NewPower(
 					NewVariable("y"),
 					NewConstant(3),
 				),
@@ -886,12 +886,12 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power and sqrt: x^2 * sqrt(y)",
-			expr: NewMultiplyExpression(
-				NewPowerExpression(
+			expr: NewMultiply(
+				NewPower(
 					NewVariable("x"),
 					NewConstant(2),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("y"),
 				),
 			),
@@ -899,18 +899,18 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "complex term: 2 * x^2 * y * sqrt(z)",
-			expr: NewMultiplyExpression(
-				NewMultiplyExpression(
-					NewMultiplyExpression(
+			expr: NewMultiply(
+				NewMultiply(
+					NewMultiply(
 						NewConstant(2),
-						NewPowerExpression(
+						NewPower(
 							NewVariable("x"),
 							NewConstant(2),
 						),
 					),
 					NewVariable("y"),
 				),
-				NewSqrtExpression(
+				NewSqrt(
 					NewVariable("z"),
 				),
 			),
@@ -918,7 +918,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power with zero exponent: x^0",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(0),
 			),
@@ -926,7 +926,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power with one exponent: x^1",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(1),
 			),
@@ -934,7 +934,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "negative power: x^(-2) (mathematically not a polynomial term)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewConstant(-2),
 			),
@@ -942,9 +942,9 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "fractional power: x^(1/2) (mathematically not a polynomial term)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
-				NewDivideExpression(
+				NewDivide(
 					NewConstant(1),
 					NewConstant(2),
 				),
@@ -953,7 +953,7 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power with variable exponent: x^y (not a polynomial term)",
-			expr: NewPowerExpression(
+			expr: NewPower(
 				NewVariable("x"),
 				NewVariable("y"),
 			),
@@ -961,8 +961,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "sqrt of sum: sqrt(x + y) (not a polynomial term)",
-			expr: NewSqrtExpression(
-				NewAddExpression(
+			expr: NewSqrt(
+				NewAdd(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -971,8 +971,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "power of sum: (x + y)^2 (expands to polynomial but structure is not a term)",
-			expr: NewPowerExpression(
-				NewAddExpression(
+			expr: NewPower(
+				NewAdd(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -982,8 +982,8 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "multiplication with addition: (x + y) * z (not a term)",
-			expr: NewMultiplyExpression(
-				NewAddExpression(
+			expr: NewMultiply(
+				NewAdd(
 					NewVariable("x"),
 					NewVariable("y"),
 				),
@@ -993,9 +993,9 @@ func TestIsPolynomialTerm(t *testing.T) {
 		},
 		{
 			name: "sqrt with addition inside: sqrt(x^2 + 1) (not a polynomial term)",
-			expr: NewSqrtExpression(
-				NewAddExpression(
-					NewPowerExpression(
+			expr: NewSqrt(
+				NewAdd(
+					NewPower(
 						NewVariable("x"),
 						NewConstant(2),
 					),
@@ -1041,28 +1041,28 @@ func TestMapTerms(t *testing.T) {
 		},
 		{
 			name: "double constants in addition",
-			expr: NewAddExpression(
+			expr: NewAdd(
 				NewConstant(2),
 				NewConstant(3),
 			),
 			fn: doubleConstants,
-			expected: NewAddExpression(
+			expected: NewAdd(
 				NewConstant(4),
 				NewConstant(6),
 			),
 		},
 		{
 			name: "double constants in nested addition",
-			expr: NewAddExpression(
-				NewAddExpression(
+			expr: NewAdd(
+				NewAdd(
 					NewConstant(1),
 					NewConstant(2),
 				),
 				NewConstant(3),
 			),
 			fn: doubleConstants,
-			expected: NewAddExpression(
-				NewAddExpression(
+			expected: NewAdd(
+				NewAdd(
 					NewConstant(2),
 					NewConstant(4),
 				),

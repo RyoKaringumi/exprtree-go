@@ -199,13 +199,13 @@ func TestExpressionToLatex(t *testing.T) {
 		},
 		{
 			name:     "Simple addition",
-			expr:     expr.NewAddExpression(&expr.Constant{Value: expr.NumberValue{Value: 2}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
+			expr:     expr.NewAdd(&expr.Constant{Value: expr.NumberValue{Value: 2}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
 			expected: "2 + 3",
 		},
 		{
 			name: "Complex expression with precedence",
-			expr: expr.NewMultiplyExpression(
-				expr.NewAddExpression(
+			expr: expr.NewMultiply(
+				expr.NewAdd(
 					&expr.Constant{Value: expr.NumberValue{Value: 2}},
 					&expr.Constant{Value: expr.NumberValue{Value: 3}},
 				),
@@ -215,9 +215,9 @@ func TestExpressionToLatex(t *testing.T) {
 		},
 		{
 			name: "Nested operations",
-			expr: expr.NewAddExpression(
+			expr: expr.NewAdd(
 				&expr.Constant{Value: expr.NumberValue{Value: 2}},
-				expr.NewMultiplyExpression(
+				expr.NewMultiply(
 					&expr.Constant{Value: expr.NumberValue{Value: 3}},
 					&expr.Constant{Value: expr.NumberValue{Value: 4}},
 				),

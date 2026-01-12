@@ -29,7 +29,7 @@ func TestConstantEval(t *testing.T) {
 func TestAddExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 3.0}}
 	right := &Constant{Value: NumberValue{Value: 4.0}}
-	add := NewAddExpression(left, right)
+	add := NewAdd(left, right)
 	result, ok := add.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -46,7 +46,7 @@ func TestAddExpression(t *testing.T) {
 func TestSubtractExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 10.0}}
 	right := &Constant{Value: NumberValue{Value: 3.0}}
-	sub := NewSubtractExpression(left, right)
+	sub := NewSubtract(left, right)
 	result, ok := sub.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -63,7 +63,7 @@ func TestSubtractExpression(t *testing.T) {
 func TestMultiplyExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 6.0}}
 	right := &Constant{Value: NumberValue{Value: 7.0}}
-	mul := NewMultiplyExpression(left, right)
+	mul := NewMultiply(left, right)
 	result, ok := mul.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -80,7 +80,7 @@ func TestMultiplyExpression(t *testing.T) {
 func TestDivideExpression(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 15.0}}
 	right := &Constant{Value: NumberValue{Value: 3.0}}
-	div := NewDivideExpression(left, right)
+	div := NewDivide(left, right)
 	result, ok := div.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -97,7 +97,7 @@ func TestDivideExpression(t *testing.T) {
 func TestDivideByZero(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 10.0}}
 	right := &Constant{Value: NumberValue{Value: 0.0}}
-	div := NewDivideExpression(left, right)
+	div := NewDivide(left, right)
 	_, ok := div.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail due to division by zero")
@@ -107,7 +107,7 @@ func TestDivideByZero(t *testing.T) {
 func TestAddExpressionChildren(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 3.0}}
 	right := &Constant{Value: NumberValue{Value: 4.0}}
-	add := NewAddExpression(left, right)
+	add := NewAdd(left, right)
 	children := add.Children()
 	if len(children) != 2 {
 		t.Errorf("Expected 2 children, got %d", len(children))
@@ -145,7 +145,7 @@ func TestExpressionWithVariable(t *testing.T) {
 	// x + 2 should fail to evaluate because x has no value
 	left := &Variable{Name: "x"}
 	right := &Constant{Value: NumberValue{Value: 2.0}}
-	add := NewAddExpression(left, right)
+	add := NewAdd(left, right)
 	_, ok := add.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail due to variable")
@@ -158,21 +158,21 @@ func TestPatternMatch(t *testing.T) {
 	// Expected bindings: x -> (x+3), y -> 1, z -> z
 
 	// Build pattern: x(y+z)
-	pattern := NewMultiplyExpression(
+	pattern := NewMultiply(
 		NewVariable("x"),
-		NewAddExpression(
+		NewAdd(
 			NewVariable("y"),
 			NewVariable("z"),
 		),
 	)
 
 	// Build expression: (x+3)(1+z)
-	expr := NewMultiplyExpression(
-		NewAddExpression(
+	expr := NewMultiply(
+		NewAdd(
 			NewVariable("x"),
 			NewConstant(3),
 		),
-		NewAddExpression(
+		NewAdd(
 			NewConstant(1),
 			NewVariable("z"),
 		),
@@ -188,7 +188,7 @@ func TestPatternMatch(t *testing.T) {
 	if !exists {
 		t.Errorf("Expected binding for variable 'x'")
 	}
-	expectedX := NewAddExpression(
+	expectedX := NewAdd(
 		NewVariable("x"),
 		NewConstant(3),
 	)
@@ -220,13 +220,13 @@ func TestPatternMatch(t *testing.T) {
 func TestPatternMatchWithRepeatedVariable(t *testing.T) {
 	// Test that repeated variables must match the same expression
 	// Pattern: x + x
-	pattern := NewAddExpression(
+	pattern := NewAdd(
 		NewVariable("x"),
 		NewVariable("x"),
 	)
 
 	// Expression: 2 + 2 (should match)
-	expr1 := NewAddExpression(
+	expr1 := NewAdd(
 		NewConstant(2),
 		NewConstant(2),
 	)
@@ -239,7 +239,7 @@ func TestPatternMatchWithRepeatedVariable(t *testing.T) {
 	}
 
 	// Expression: 2 + 3 (should NOT match)
-	expr2 := NewAddExpression(
+	expr2 := NewAdd(
 		NewConstant(2),
 		NewConstant(3),
 	)
@@ -251,13 +251,13 @@ func TestPatternMatchWithRepeatedVariable(t *testing.T) {
 
 func TestPatternMatchWithConstant(t *testing.T) {
 	// Pattern: x + 5
-	pattern := NewAddExpression(
+	pattern := NewAdd(
 		NewVariable("x"),
 		NewConstant(5),
 	)
 
 	// Expression: 3 + 5 (should match)
-	expr1 := NewAddExpression(
+	expr1 := NewAdd(
 		NewConstant(3),
 		NewConstant(5),
 	)
@@ -270,7 +270,7 @@ func TestPatternMatchWithConstant(t *testing.T) {
 	}
 
 	// Expression: 3 + 4 (should NOT match, constant differs)
-	expr2 := NewAddExpression(
+	expr2 := NewAdd(
 		NewConstant(3),
 		NewConstant(4),
 	)
@@ -282,13 +282,13 @@ func TestPatternMatchWithConstant(t *testing.T) {
 
 func TestPatternMatchTypeMismatch(t *testing.T) {
 	// Pattern: x + y
-	pattern := NewAddExpression(
+	pattern := NewAdd(
 		NewVariable("x"),
 		NewVariable("y"),
 	)
 
 	// Expression: 2 * 3 (different operator, should NOT match)
-	expr := NewMultiplyExpression(
+	expr := NewMultiply(
 		NewConstant(2),
 		NewConstant(3),
 	)
@@ -306,9 +306,9 @@ func TestSubstitute(t *testing.T) {
 	// Expected result: (x+3)(1+z)
 
 	// Build expression: x(y+z)
-	expr := NewMultiplyExpression(
+	expr := NewMultiply(
 		NewVariable("x"),
-		NewAddExpression(
+		NewAdd(
 			NewVariable("y"),
 			NewVariable("z"),
 		),
@@ -316,7 +316,7 @@ func TestSubstitute(t *testing.T) {
 
 	// Build bindings
 	bindings := map[string]Expression{
-		"x": NewAddExpression(
+		"x": NewAdd(
 			NewVariable("x"),
 			NewConstant(3),
 		),
@@ -328,12 +328,12 @@ func TestSubstitute(t *testing.T) {
 	result := Substitute(expr, bindings)
 
 	// Expected result: (x+3)(1+z)
-	expected := NewMultiplyExpression(
-		NewAddExpression(
+	expected := NewMultiply(
+		NewAdd(
 			NewVariable("x"),
 			NewConstant(3),
 		),
-		NewAddExpression(
+		NewAdd(
 			NewConstant(1),
 			NewVariable("z"),
 		),
@@ -350,8 +350,8 @@ func TestSubstitutePartial(t *testing.T) {
 	// Bindings: x -> 1, z -> 3 (y is not bound)
 	// Expected: 1 + y + 3
 
-	expr := NewAddExpression(
-		NewAddExpression(
+	expr := NewAdd(
+		NewAdd(
 			NewVariable("x"),
 			NewVariable("y"),
 		),
@@ -365,8 +365,8 @@ func TestSubstitutePartial(t *testing.T) {
 
 	result := Substitute(expr, bindings)
 
-	expected := NewAddExpression(
-		NewAddExpression(
+	expected := NewAdd(
+		NewAdd(
 			NewConstant(1),
 			NewVariable("y"),
 		),
@@ -384,7 +384,7 @@ func TestSubstituteNoBindings(t *testing.T) {
 	// Bindings: {} (empty)
 	// Expected: x + y (unchanged)
 
-	expr := NewAddExpression(
+	expr := NewAdd(
 		NewVariable("x"),
 		NewVariable("y"),
 	)
@@ -404,9 +404,9 @@ func TestSubstituteWithConstants(t *testing.T) {
 	// Bindings: x -> 5
 	// Expected: 2 + 5 * 3
 
-	expr := NewAddExpression(
+	expr := NewAdd(
 		NewConstant(2),
-		NewMultiplyExpression(
+		NewMultiply(
 			NewVariable("x"),
 			NewConstant(3),
 		),
@@ -418,9 +418,9 @@ func TestSubstituteWithConstants(t *testing.T) {
 
 	result := Substitute(expr, bindings)
 
-	expected := NewAddExpression(
+	expected := NewAdd(
 		NewConstant(2),
-		NewMultiplyExpression(
+		NewMultiply(
 			NewConstant(5),
 			NewConstant(3),
 		),
@@ -437,20 +437,20 @@ func TestPatternMatchAndSubstituteRoundTrip(t *testing.T) {
 	// 2. Substitute the bindings back into the pattern
 	// 3. Should get back the original expression
 
-	pattern := NewMultiplyExpression(
+	pattern := NewMultiply(
 		NewVariable("x"),
-		NewAddExpression(
+		NewAdd(
 			NewVariable("y"),
 			NewVariable("z"),
 		),
 	)
 
-	original := NewMultiplyExpression(
-		NewAddExpression(
+	original := NewMultiply(
+		NewAdd(
 			NewVariable("x"),
 			NewConstant(3),
 		),
-		NewAddExpression(
+		NewAdd(
 			NewConstant(1),
 			NewVariable("z"),
 		),
@@ -477,7 +477,7 @@ func TestPowerExpressionBasic(t *testing.T) {
 	// 2^3 = 8
 	base := &Constant{Value: NumberValue{Value: 2.0}}
 	exponent := &Constant{Value: NumberValue{Value: 3.0}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	result, ok := pow.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -495,7 +495,7 @@ func TestPowerExpressionZeroExponent(t *testing.T) {
 	// 5^0 = 1
 	base := &Constant{Value: NumberValue{Value: 5.0}}
 	exponent := &Constant{Value: NumberValue{Value: 0.0}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	result, ok := pow.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -513,7 +513,7 @@ func TestPowerExpressionOneExponent(t *testing.T) {
 	// 5^1 = 5
 	base := &Constant{Value: NumberValue{Value: 5.0}}
 	exponent := &Constant{Value: NumberValue{Value: 1.0}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	result, ok := pow.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -531,7 +531,7 @@ func TestPowerExpressionNegativeExponent(t *testing.T) {
 	// 2^(-2) = 0.25
 	base := &Constant{Value: NumberValue{Value: 2.0}}
 	exponent := &Constant{Value: NumberValue{Value: -2.0}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	result, ok := pow.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -549,7 +549,7 @@ func TestPowerExpressionFractionalExponent(t *testing.T) {
 	// 4^0.5 = 2
 	base := &Constant{Value: NumberValue{Value: 4.0}}
 	exponent := &Constant{Value: NumberValue{Value: 0.5}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	result, ok := pow.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -565,11 +565,11 @@ func TestPowerExpressionFractionalExponent(t *testing.T) {
 
 func TestPowerExpressionNested(t *testing.T) {
 	// (2^2)^3 = 4^3 = 64
-	inner := NewPowerExpression(
+	inner := NewPower(
 		&Constant{Value: NumberValue{Value: 2.0}},
 		&Constant{Value: NumberValue{Value: 2.0}},
 	)
-	outer := NewPowerExpression(
+	outer := NewPower(
 		inner,
 		&Constant{Value: NumberValue{Value: 3.0}},
 	)
@@ -590,7 +590,7 @@ func TestPowerExpressionZeroToZero(t *testing.T) {
 	// 0^0 is mathematically undefined, but many implementations define it as 1
 	base := &Constant{Value: NumberValue{Value: 0.0}}
 	exponent := &Constant{Value: NumberValue{Value: 0.0}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	result, ok := pow.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -607,7 +607,7 @@ func TestPowerExpressionZeroToZero(t *testing.T) {
 func TestPowerExpressionChildren(t *testing.T) {
 	base := &Constant{Value: NumberValue{Value: 2.0}}
 	exponent := &Constant{Value: NumberValue{Value: 3.0}}
-	pow := NewPowerExpression(base, exponent)
+	pow := NewPower(base, exponent)
 	children := pow.Children()
 	if len(children) != 2 {
 		t.Errorf("Expected 2 children, got %d", len(children))
@@ -622,7 +622,7 @@ func TestPowerExpressionChildren(t *testing.T) {
 func TestSqrtExpressionBasic(t *testing.T) {
 	// sqrt(4) = 2
 	arg := &Constant{Value: NumberValue{Value: 4.0}}
-	sqrt := NewSqrtExpression(arg)
+	sqrt := NewSqrt(arg)
 	result, ok := sqrt.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -639,7 +639,7 @@ func TestSqrtExpressionBasic(t *testing.T) {
 func TestSqrtExpressionZero(t *testing.T) {
 	// sqrt(0) = 0
 	arg := &Constant{Value: NumberValue{Value: 0.0}}
-	sqrt := NewSqrtExpression(arg)
+	sqrt := NewSqrt(arg)
 	result, ok := sqrt.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -656,7 +656,7 @@ func TestSqrtExpressionZero(t *testing.T) {
 func TestSqrtExpressionOne(t *testing.T) {
 	// sqrt(1) = 1
 	arg := &Constant{Value: NumberValue{Value: 1.0}}
-	sqrt := NewSqrtExpression(arg)
+	sqrt := NewSqrt(arg)
 	result, ok := sqrt.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -673,7 +673,7 @@ func TestSqrtExpressionOne(t *testing.T) {
 func TestSqrtExpressionDecimal(t *testing.T) {
 	// sqrt(2.25) = 1.5
 	arg := &Constant{Value: NumberValue{Value: 2.25}}
-	sqrt := NewSqrtExpression(arg)
+	sqrt := NewSqrt(arg)
 	result, ok := sqrt.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -690,7 +690,7 @@ func TestSqrtExpressionDecimal(t *testing.T) {
 func TestSqrtExpressionNegative(t *testing.T) {
 	// sqrt(-1) should fail (no complex number support)
 	arg := &Constant{Value: NumberValue{Value: -1.0}}
-	sqrt := NewSqrtExpression(arg)
+	sqrt := NewSqrt(arg)
 	_, ok := sqrt.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail for negative number")
@@ -699,10 +699,10 @@ func TestSqrtExpressionNegative(t *testing.T) {
 
 func TestSqrtExpressionNested(t *testing.T) {
 	// sqrt(sqrt(16)) = sqrt(4) = 2
-	inner := NewSqrtExpression(
+	inner := NewSqrt(
 		&Constant{Value: NumberValue{Value: 16.0}},
 	)
-	outer := NewSqrtExpression(inner)
+	outer := NewSqrt(inner)
 	result, ok := outer.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -718,7 +718,7 @@ func TestSqrtExpressionNested(t *testing.T) {
 
 func TestSqrtExpressionChildren(t *testing.T) {
 	arg := &Constant{Value: NumberValue{Value: 4.0}}
-	sqrt := NewSqrtExpression(arg)
+	sqrt := NewSqrt(arg)
 	children := sqrt.Children()
 	if len(children) != 1 {
 		t.Errorf("Expected 1 child, got %d", len(children))
@@ -731,16 +731,16 @@ func TestSqrtExpressionChildren(t *testing.T) {
 func TestSqrtExpressionWithComplexExpression(t *testing.T) {
 	// sqrt(3^2 + 4^2) = sqrt(9 + 16) = sqrt(25) = 5
 	// This tests the Pythagorean theorem
-	pow1 := NewPowerExpression(
+	pow1 := NewPower(
 		&Constant{Value: NumberValue{Value: 3.0}},
 		&Constant{Value: NumberValue{Value: 2.0}},
 	)
-	pow2 := NewPowerExpression(
+	pow2 := NewPower(
 		&Constant{Value: NumberValue{Value: 4.0}},
 		&Constant{Value: NumberValue{Value: 2.0}},
 	)
-	sum := NewAddExpression(pow1, pow2)
-	sqrt := NewSqrtExpression(sum)
+	sum := NewAdd(pow1, pow2)
+	sqrt := NewSqrt(sum)
 	result, ok := sqrt.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -759,7 +759,7 @@ func TestSqrtExpressionWithComplexExpression(t *testing.T) {
 func TestCubeRoot(t *testing.T) {
 	// ∛8 = 2
 	arg := &Constant{Value: NumberValue{Value: 8.0}}
-	cubeRoot := NewNthRootExpression(arg, 3)
+	cubeRoot := NewNthRoot(arg, 3)
 	result, ok := cubeRoot.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -776,7 +776,7 @@ func TestCubeRoot(t *testing.T) {
 func TestFourthRoot(t *testing.T) {
 	// ⁴√16 = 2
 	arg := &Constant{Value: NumberValue{Value: 16.0}}
-	fourthRoot := NewNthRootExpression(arg, 4)
+	fourthRoot := NewNthRoot(arg, 4)
 	result, ok := fourthRoot.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -793,7 +793,7 @@ func TestFourthRoot(t *testing.T) {
 func TestCubeRootOfNegative(t *testing.T) {
 	// ∛(-8) = -2 (odd roots of negative numbers are allowed)
 	arg := &Constant{Value: NumberValue{Value: -8.0}}
-	cubeRoot := NewNthRootExpression(arg, 3)
+	cubeRoot := NewNthRoot(arg, 3)
 	result, ok := cubeRoot.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -810,7 +810,7 @@ func TestCubeRootOfNegative(t *testing.T) {
 func TestEvenRootOfNegative(t *testing.T) {
 	// ⁴√(-16) should fail (even roots of negative numbers are not allowed)
 	arg := &Constant{Value: NumberValue{Value: -16.0}}
-	fourthRoot := NewNthRootExpression(arg, 4)
+	fourthRoot := NewNthRoot(arg, 4)
 	_, ok := fourthRoot.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail for even root of negative number")
@@ -820,7 +820,7 @@ func TestEvenRootOfNegative(t *testing.T) {
 func TestFifthRoot(t *testing.T) {
 	// ⁵√32 = 2
 	arg := &Constant{Value: NumberValue{Value: 32.0}}
-	fifthRoot := NewNthRootExpression(arg, 5)
+	fifthRoot := NewNthRoot(arg, 5)
 	result, ok := fifthRoot.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -836,7 +836,7 @@ func TestFifthRoot(t *testing.T) {
 
 func TestNthRootChildren(t *testing.T) {
 	arg := &Constant{Value: NumberValue{Value: 8.0}}
-	cubeRoot := NewNthRootExpression(arg, 3)
+	cubeRoot := NewNthRoot(arg, 3)
 	children := cubeRoot.Children()
 	if len(children) != 1 {
 		t.Errorf("Expected 1 child, got %d", len(children))
@@ -848,15 +848,15 @@ func TestNthRootChildren(t *testing.T) {
 
 func TestNthRootNValue(t *testing.T) {
 	// Test that N is correctly set
-	cubeRoot := NewNthRootExpression(&Constant{Value: NumberValue{Value: 8.0}}, 3)
+	cubeRoot := NewNthRoot(&Constant{Value: NumberValue{Value: 8.0}}, 3)
 	if cubeRoot.N != 3.0 {
 		t.Errorf("Expected N to be 3.0, got %f", cubeRoot.N)
 	}
 
-	// Test that NewSqrtExpression sets N to 2
-	sqrtExpr := NewSqrtExpression(&Constant{Value: NumberValue{Value: 4.0}})
+	// Test that NewSqrt sets N to 2
+	sqrtExpr := NewSqrt(&Constant{Value: NumberValue{Value: 4.0}})
 	if sqrtExpr.N != 2.0 {
-		t.Errorf("Expected N to be 2.0 for NewSqrtExpression, got %f", sqrtExpr.N)
+		t.Errorf("Expected N to be 2.0 for NewSqrt, got %f", sqrtExpr.N)
 	}
 }
 
@@ -897,7 +897,7 @@ func TestEqualExpressionTrue(t *testing.T) {
 	// 5 = 5 should be true
 	left := &Constant{Value: NumberValue{Value: 5.0}}
 	right := &Constant{Value: NumberValue{Value: 5.0}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	result, ok := equal.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -915,7 +915,7 @@ func TestEqualExpressionFalse(t *testing.T) {
 	// 2 = 3 should be false
 	left := &Constant{Value: NumberValue{Value: 2.0}}
 	right := &Constant{Value: NumberValue{Value: 3.0}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	result, ok := equal.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -931,12 +931,12 @@ func TestEqualExpressionFalse(t *testing.T) {
 
 func TestEqualExpressionMathematical(t *testing.T) {
 	// 2 + 3 = 5 (数学的に正しい等式)
-	left := NewAddExpression(
+	left := NewAdd(
 		NewConstant(2),
 		NewConstant(3),
 	)
 	right := NewConstant(5)
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 
 	result, ok := equal.Eval()
 	if !ok {
@@ -955,12 +955,12 @@ func TestEqualExpressionMathematical(t *testing.T) {
 
 func TestEqualExpressionFloatingPointTolerance(t *testing.T) {
 	// 0.1 + 0.2 = 0.3 (浮動小数点誤差を考慮)
-	left := NewAddExpression(
+	left := NewAdd(
 		&Constant{Value: NumberValue{Value: 0.1}},
 		&Constant{Value: NumberValue{Value: 0.2}},
 	)
 	right := &Constant{Value: NumberValue{Value: 0.3}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 
 	result, ok := equal.Eval()
 	if !ok {
@@ -979,15 +979,15 @@ func TestEqualExpressionFloatingPointTolerance(t *testing.T) {
 
 func TestEqualExpressionComplex(t *testing.T) {
 	// 2 + 3 = 1 + 4 (both sides evaluate to 5)
-	left := NewAddExpression(
+	left := NewAdd(
 		NewConstant(2),
 		NewConstant(3),
 	)
-	right := NewAddExpression(
+	right := NewAdd(
 		NewConstant(1),
 		NewConstant(4),
 	)
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 
 	result, ok := equal.Eval()
 	if !ok {
@@ -1008,7 +1008,7 @@ func TestEqualExpressionZero(t *testing.T) {
 	// 0 = 0 should be true
 	left := &Constant{Value: NumberValue{Value: 0.0}}
 	right := &Constant{Value: NumberValue{Value: 0.0}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	result, ok := equal.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -1026,7 +1026,7 @@ func TestEqualExpressionNegative(t *testing.T) {
 	// -5 = -5 should be true
 	left := &Constant{Value: NumberValue{Value: -5.0}}
 	right := &Constant{Value: NumberValue{Value: -5.0}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	result, ok := equal.Eval()
 	if !ok {
 		t.Errorf("Expected evaluation to succeed")
@@ -1044,7 +1044,7 @@ func TestEqualExpressionEvaluationFailure(t *testing.T) {
 	// x = 5 should fail because x cannot be evaluated
 	left := &Variable{Name: "x"}
 	right := &Constant{Value: NumberValue{Value: 5.0}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	_, ok := equal.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail due to variable")
@@ -1055,7 +1055,7 @@ func TestEqualExpressionBothSidesFail(t *testing.T) {
 	// x = y should fail because both variables cannot be evaluated
 	left := &Variable{Name: "x"}
 	right := &Variable{Name: "y"}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	_, ok := equal.Eval()
 	if ok {
 		t.Errorf("Expected evaluation to fail due to variables")
@@ -1065,7 +1065,7 @@ func TestEqualExpressionBothSidesFail(t *testing.T) {
 func TestEqualExpressionChildren(t *testing.T) {
 	left := &Constant{Value: NumberValue{Value: 2.0}}
 	right := &Constant{Value: NumberValue{Value: 3.0}}
-	equal := NewEqualExpression(left, right)
+	equal := NewEqual(left, right)
 	children := equal.Children()
 	if len(children) != 2 {
 		t.Errorf("Expected 2 children, got %d", len(children))
@@ -1077,15 +1077,15 @@ func TestEqualExpressionChildren(t *testing.T) {
 
 func TestEqualExpressionBoolValues(t *testing.T) {
 	// (2 = 2) = (3 = 3) should be true (both sides are true)
-	leftEqual := NewEqualExpression(
+	leftEqual := NewEqual(
 		NewConstant(2),
 		NewConstant(2),
 	)
-	rightEqual := NewEqualExpression(
+	rightEqual := NewEqual(
 		NewConstant(3),
 		NewConstant(3),
 	)
-	outerEqual := NewEqualExpression(leftEqual, rightEqual)
+	outerEqual := NewEqual(leftEqual, rightEqual)
 
 	result, ok := outerEqual.Eval()
 	if !ok {
@@ -1104,15 +1104,15 @@ func TestEqualExpressionBoolValues(t *testing.T) {
 
 func TestEqualExpressionBoolValuesFalse(t *testing.T) {
 	// (2 = 2) = (3 = 4) should be false (true != false)
-	leftEqual := NewEqualExpression(
+	leftEqual := NewEqual(
 		NewConstant(2),
 		NewConstant(2),
 	)
-	rightEqual := NewEqualExpression(
+	rightEqual := NewEqual(
 		NewConstant(3),
 		NewConstant(4),
 	)
-	outerEqual := NewEqualExpression(leftEqual, rightEqual)
+	outerEqual := NewEqual(leftEqual, rightEqual)
 
 	result, ok := outerEqual.Eval()
 	if !ok {
@@ -1131,14 +1131,14 @@ func TestEqualExpressionBoolValuesFalse(t *testing.T) {
 
 func TestPatternMatchEqual(t *testing.T) {
 	// Pattern: x = y
-	pattern := NewEqualExpression(
+	pattern := NewEqual(
 		NewVariable("x"),
 		NewVariable("y"),
 	)
 
 	// Expression: 2 + 3 = 5
-	expr := NewEqualExpression(
-		NewAddExpression(
+	expr := NewEqual(
+		NewAdd(
 			NewConstant(2),
 			NewConstant(3),
 		),
@@ -1155,7 +1155,7 @@ func TestPatternMatchEqual(t *testing.T) {
 	if !exists {
 		t.Errorf("Expected binding for variable 'x'")
 	}
-	expectedX := NewAddExpression(
+	expectedX := NewAdd(
 		NewConstant(2),
 		NewConstant(3),
 	)
@@ -1176,14 +1176,14 @@ func TestPatternMatchEqual(t *testing.T) {
 
 func TestSubstituteEqual(t *testing.T) {
 	// Expression: x = y
-	expr := NewEqualExpression(
+	expr := NewEqual(
 		NewVariable("x"),
 		NewVariable("y"),
 	)
 
 	// Bindings: x -> 2 + 3, y -> 5
 	bindings := map[string]Expression{
-		"x": NewAddExpression(
+		"x": NewAdd(
 			NewConstant(2),
 			NewConstant(3),
 		),
@@ -1194,8 +1194,8 @@ func TestSubstituteEqual(t *testing.T) {
 	result := Substitute(expr, bindings)
 
 	// Expected result: (2 + 3) = 5
-	expected := NewEqualExpression(
-		NewAddExpression(
+	expected := NewEqual(
+		NewAdd(
 			NewConstant(2),
 			NewConstant(3),
 		),
