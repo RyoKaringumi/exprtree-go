@@ -102,9 +102,15 @@ func TestIntegration_DivisionByZero(t *testing.T) {
 
 func TestIntegration_ParseLatexReturnsExpression(t *testing.T) {
 	input := "2 + 3"
-	expression, err := latex.ParseLatex(input)
+	result, err := latex.ParseLatex(input)
 	if err != nil {
 		t.Fatalf("ParseLatex failed: %v", err)
+	}
+
+	// Type assert to expr.Expression
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("ParseLatex did not return an Expression, got %T", result)
 	}
 
 	// Verify we can traverse the expression tree
@@ -114,12 +120,12 @@ func TestIntegration_ParseLatexReturnsExpression(t *testing.T) {
 	}
 
 	// Verify we can evaluate the expression
-	result, ok := expression.Eval()
+	evalResult, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 5.0 {
 		t.Errorf("expected result 5.0, got %f", numResult.Value)
 	}

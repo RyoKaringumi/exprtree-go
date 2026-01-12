@@ -21,8 +21,13 @@ func (b *BoolValue) Eval() (ExpressValue, bool) {
 	return b, true
 }
 
-type Expression interface {
+type Node interface {
 	Children() []Expression
+	WithChildren(children []Expression) Expression
+}
+
+type Expression interface {
+	Node
 	Eval() (ExpressValue, bool)
 }
 
@@ -42,6 +47,13 @@ func (e *Add) Children() []Expression {
 	return []Expression{e.Left, e.Right}
 }
 
+func (e *Add) WithChildren(children []Expression) Expression {
+	if len(children) != 2 {
+		panic("Add requires exactly 2 children")
+	}
+	return NewAdd(children[0], children[1])
+}
+
 type Subtract struct {
 	Left  Expression
 	Right Expression
@@ -56,6 +68,13 @@ func NewSubtract(left, right Expression) *Subtract {
 
 func (e *Subtract) Children() []Expression {
 	return []Expression{e.Left, e.Right}
+}
+
+func (e *Subtract) WithChildren(children []Expression) Expression {
+	if len(children) != 2 {
+		panic("Subtract requires exactly 2 children")
+	}
+	return NewSubtract(children[0], children[1])
 }
 
 type Multiply struct {
@@ -74,6 +93,13 @@ func (e *Multiply) Children() []Expression {
 	return []Expression{e.Left, e.Right}
 }
 
+func (e *Multiply) WithChildren(children []Expression) Expression {
+	if len(children) != 2 {
+		panic("Multiply requires exactly 2 children")
+	}
+	return NewMultiply(children[0], children[1])
+}
+
 type Divide struct {
 	Left  Expression
 	Right Expression
@@ -88,6 +114,13 @@ func NewDivide(left, right Expression) *Divide {
 
 func (e *Divide) Children() []Expression {
 	return []Expression{e.Left, e.Right}
+}
+
+func (e *Divide) WithChildren(children []Expression) Expression {
+	if len(children) != 2 {
+		panic("Divide requires exactly 2 children")
+	}
+	return NewDivide(children[0], children[1])
 }
 
 type Proposition interface {
@@ -107,6 +140,13 @@ func NewEqual(left, right Expression) *Equal {
 
 func (e *Equal) Children() []Expression {
 	return []Expression{e.Left, e.Right}
+}
+
+func (e *Equal) WithChildren(children []Expression) Expression {
+	if len(children) != 2 {
+		panic("Equal requires exactly 2 children")
+	}
+	return NewEqual(children[0], children[1])
 }
 
 type And struct {
@@ -148,8 +188,22 @@ func (c *Constant) Children() []Expression {
 	return []Expression{}
 }
 
+func (c *Constant) WithChildren(children []Expression) Expression {
+	if len(children) != 0 {
+		panic("Constant requires exactly 0 children")
+	}
+	return c
+}
+
 func (v *Variable) Children() []Expression {
 	return []Expression{}
+}
+
+func (v *Variable) WithChildren(children []Expression) Expression {
+	if len(children) != 0 {
+		panic("Variable requires exactly 0 children")
+	}
+	return v
 }
 
 func (e *Add) Eval() (ExpressValue, bool) {
@@ -470,6 +524,13 @@ func (e *Power) Children() []Expression {
 	return []Expression{e.Left, e.Right}
 }
 
+func (e *Power) WithChildren(children []Expression) Expression {
+	if len(children) != 2 {
+		panic("Power requires exactly 2 children")
+	}
+	return NewPower(children[0], children[1])
+}
+
 func (e *Power) Eval() (ExpressValue, bool) {
 	baseVal, baseOk := e.Left.Eval()
 	exponentVal, exponentOk := e.Right.Eval()
@@ -531,4 +592,11 @@ func (e *Sqrt) Eval() (ExpressValue, bool) {
 
 func (e *Sqrt) Children() []Expression {
 	return []Expression{e.Operand}
+}
+
+func (e *Sqrt) WithChildren(children []Expression) Expression {
+	if len(children) != 1 {
+		panic("Sqrt requires exactly 1 child")
+	}
+	return NewNthRoot(children[0], e.N)
 }
