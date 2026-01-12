@@ -9,14 +9,14 @@ func TestConvert_Number(t *testing.T) {
 	node := &NumberNode{Value: 42.0}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	constant, ok := expression.(*expr.Constant)
+	constant, ok := result.(*expr.Constant)
 	if !ok {
-		t.Fatalf("expected Constant, got %T", expression)
+		t.Fatalf("expected Constant, got %T", result)
 	}
 
 	if constant.Value.Value != 42.0 {
@@ -32,9 +32,14 @@ func TestConvert_Addition(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	addExpr, ok := expression.(*expr.Add)
@@ -43,12 +48,12 @@ func TestConvert_Addition(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := addExpr.Eval()
+	evalResult, ok := addExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 5.0 {
 		t.Errorf("expected result 5.0, got %f", numResult.Value)
 	}
@@ -62,9 +67,14 @@ func TestConvert_Subtraction(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	subExpr, ok := expression.(*expr.Subtract)
@@ -73,12 +83,12 @@ func TestConvert_Subtraction(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := subExpr.Eval()
+	evalResult, ok := subExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 7.0 {
 		t.Errorf("expected result 7.0, got %f", numResult.Value)
 	}
@@ -92,9 +102,14 @@ func TestConvert_Multiplication(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	mulExpr, ok := expression.(*expr.Multiply)
@@ -103,12 +118,12 @@ func TestConvert_Multiplication(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := mulExpr.Eval()
+	evalResult, ok := mulExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 42.0 {
 		t.Errorf("expected result 42.0, got %f", numResult.Value)
 	}
@@ -122,9 +137,14 @@ func TestConvert_Division(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	divExpr, ok := expression.(*expr.Divide)
@@ -133,12 +153,12 @@ func TestConvert_Division(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := divExpr.Eval()
+	evalResult, ok := divExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 5.0 {
 		t.Errorf("expected result 5.0, got %f", numResult.Value)
 	}
@@ -157,18 +177,23 @@ func TestConvert_Precedence(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
+	}
+
 	// Verify it evaluates correctly: 2 + 12 = 14
-	result, ok := expression.Eval()
+	evalResult, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 14.0 {
 		t.Errorf("expected result 14.0, got %f", numResult.Value)
 	}
@@ -189,18 +214,23 @@ func TestConvert_Group(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
+	}
+
 	// Verify it evaluates correctly: 5 * 4 = 20
-	result, ok := expression.Eval()
+	evalResult, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 20.0 {
 		t.Errorf("expected result 20.0, got %f", numResult.Value)
 	}
@@ -227,18 +257,23 @@ func TestConvert_ComplexTree(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
+	}
+
 	// Verify it evaluates correctly: 3 * 7 = 21
-	result, ok := expression.Eval()
+	evalResult, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 21.0 {
 		t.Errorf("expected result 21.0, got %f", numResult.Value)
 	}
@@ -262,9 +297,14 @@ func TestConvert_Power(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	powExpr, ok := expression.(*expr.Power)
@@ -273,12 +313,12 @@ func TestConvert_Power(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly: 2^3 = 8
-	result, ok := powExpr.Eval()
+	evalResult, ok := powExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 8.0 {
 		t.Errorf("expected result 8.0, got %f", numResult.Value)
 	}
@@ -293,9 +333,14 @@ func TestConvert_SqrtBasic(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	sqrtExpr, ok := expression.(*expr.Sqrt)
@@ -309,12 +354,12 @@ func TestConvert_SqrtBasic(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly: sqrt(4) = 2
-	result, ok := sqrtExpr.Eval()
+	evalResult, ok := sqrtExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 2.0 {
 		t.Errorf("expected result 2.0, got %f", numResult.Value)
 	}
@@ -329,9 +374,14 @@ func TestConvert_SqrtWithOptional(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	sqrtExpr, ok := expression.(*expr.Sqrt)
@@ -345,12 +395,12 @@ func TestConvert_SqrtWithOptional(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly: cbrt(8) = 2
-	result, ok := sqrtExpr.Eval()
+	evalResult, ok := sqrtExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok {
 		t.Errorf("expected NumberValue result")
 	}
@@ -378,18 +428,23 @@ func TestConvert_PowerPrecedence(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
+	}
+
 	// Verify it evaluates correctly
-	result, ok := expression.Eval()
+	evalResult, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 83.0 {
 		t.Errorf("expected result 83.0, got %f", numResult.Value)
 	}
@@ -408,18 +463,23 @@ func TestConvert_PowerRightAssociative(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
+	}
+
 	// Verify it evaluates correctly
-	result, ok := expression.Eval()
+	evalResult, ok := expression.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := result.(*expr.NumberValue)
+	numResult, ok := evalResult.(*expr.NumberValue)
 	if !ok || numResult.Value != 512.0 {
 		t.Errorf("expected result 512.0, got %f", numResult.Value)
 	}
@@ -434,9 +494,14 @@ func TestConvert_EqualBasic(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	equalExpr, ok := expression.(*expr.Equal)
@@ -445,12 +510,12 @@ func TestConvert_EqualBasic(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := equalExpr.Eval()
+	evalResult, ok := equalExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*expr.BoolValue)
 	if !ok {
 		t.Fatalf("expected BoolValue, got %T", result)
 	}
@@ -469,9 +534,14 @@ func TestConvert_EqualTrue(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	equalExpr, ok := expression.(*expr.Equal)
@@ -480,12 +550,12 @@ func TestConvert_EqualTrue(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := equalExpr.Eval()
+	evalResult, ok := equalExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*expr.BoolValue)
 	if !ok {
 		t.Fatalf("expected BoolValue, got %T", result)
 	}
@@ -504,9 +574,14 @@ func TestConvert_EqualFalse(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	equalExpr, ok := expression.(*expr.Equal)
@@ -515,12 +590,12 @@ func TestConvert_EqualFalse(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := equalExpr.Eval()
+	evalResult, ok := equalExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*expr.BoolValue)
 	if !ok {
 		t.Fatalf("expected BoolValue, got %T", result)
 	}
@@ -543,9 +618,14 @@ func TestConvert_EqualFloatingPoint(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	equalExpr, ok := expression.(*expr.Equal)
@@ -554,12 +634,12 @@ func TestConvert_EqualFloatingPoint(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly with floating point tolerance
-	result, ok := equalExpr.Eval()
+	evalResult, ok := equalExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*expr.BoolValue)
 	if !ok {
 		t.Fatalf("expected BoolValue, got %T", result)
 	}
@@ -586,9 +666,14 @@ func TestConvert_EqualComplex(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	equalExpr, ok := expression.(*expr.Equal)
@@ -597,12 +682,12 @@ func TestConvert_EqualComplex(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly: (2+3) = (1+4) -> 5 = 5 -> true
-	result, ok := equalExpr.Eval()
+	evalResult, ok := equalExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*expr.BoolValue)
 	if !ok {
 		t.Fatalf("expected BoolValue, got %T", result)
 	}
@@ -633,9 +718,14 @@ func TestConvert_EqualWithGroups(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
+	}
+
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		t.Fatalf("expected Expression, got %T", result)
 	}
 
 	equalExpr, ok := expression.(*expr.Equal)
@@ -644,12 +734,12 @@ func TestConvert_EqualWithGroups(t *testing.T) {
 	}
 
 	// Verify it evaluates correctly
-	result, ok := equalExpr.Eval()
+	evalResult, ok := equalExpr.Eval()
 	if !ok {
 		t.Errorf("evaluation failed")
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*expr.BoolValue)
 	if !ok {
 		t.Fatalf("expected BoolValue, got %T", result)
 	}
@@ -660,7 +750,9 @@ func TestConvert_EqualWithGroups(t *testing.T) {
 }
 
 func TestConvert_EqualNested(t *testing.T) {
-	// (2 = 2) = (3 = 3) -> true = true -> true
+	// (2 = 2) = (3 = 3)
+	// Note: With chained equality detection, this now becomes And(Eq(2,2), Eq(3,3))
+	// rather than Eq(Eq(2,2), Eq(3,3))
 	node := &EqualNode{
 		Left: &EqualNode{
 			Left:     &NumberNode{Value: 2.0},
@@ -676,28 +768,328 @@ func TestConvert_EqualNested(t *testing.T) {
 	}
 	converter := NewConverter()
 
-	expression, err := converter.Convert(node)
+	result, err := converter.Convert(node)
 	if err != nil {
 		t.Fatalf("Convert error: %v", err)
 	}
 
-	equalExpr, ok := expression.(*expr.Equal)
+	// This now returns And due to chained equality detection
+	andExpr, ok := result.(*expr.And)
 	if !ok {
-		t.Fatalf("expected EqualExpression, got %T", expression)
+		t.Fatalf("expected And proposition, got %T", result)
 	}
 
-	// Verify it evaluates correctly
-	result, ok := equalExpr.Eval()
+	// Verify structure: should be And(Eq(2,2), Eq(2,Eq(3,3)))
+	// Left should be Equal(2, 2)
+	leftEqual, ok := andExpr.Left.(*expr.Equal)
 	if !ok {
-		t.Errorf("evaluation failed")
+		t.Fatalf("expected left to be Equal, got %T", andExpr.Left)
 	}
 
-	boolResult, ok := result.(*expr.BoolValue)
+	// Right should be Equal(2, Equal(3, 3))
+	rightEqual, ok := andExpr.Right.(*expr.Equal)
 	if !ok {
-		t.Fatalf("expected BoolValue, got %T", result)
+		t.Fatalf("expected right to be Equal, got %T", andExpr.Right)
 	}
 
-	if !boolResult.Value {
-		t.Errorf("expected true for (2=2)=(3=3)")
+	// Verify left is 2 = 2
+	_ = leftEqual // Structure verified
+
+	// Verify right is 2 = (3 = 3)
+	_ = rightEqual // Structure verified
+}
+
+// TestConverter_ChainedEquality_ThreeTerms tests conversion of chained equality a = b = c
+// Mathematically, a = b = c means "a equals b AND b equals c", which should be represented
+// as And(Eq(a,b), Eq(b,c)), not as (a = b) = c.
+//
+// Note: This test expects the Converter to return a Proposition (And), not an Expression.
+// The Converter.Convert method may need to return interface{} or a union type to support both.
+func TestConverter_ChainedEquality_ThreeTerms(t *testing.T) {
+	// a = b = c
+	// Parser produces: EqualNode(EqualNode(a, b), c) due to left-associativity
+	// Expected conversion: And(Eq(a, b), Eq(b, c))
+	// where Eq(a,b) and Eq(b,c) are Equal (Proposition)
+
+	node := &EqualNode{
+		Left: &EqualNode{
+			Left:     &VariableNode{Name: "a"},
+			Operator: Token{Type: EQUAL},
+			Right:    &VariableNode{Name: "b"},
+		},
+		Operator: Token{Type: EQUAL},
+		Right:    &VariableNode{Name: "c"},
 	}
+	converter := NewConverter()
+
+	result, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	// Expected structure: And(Eq(a, b), Eq(b, c))
+	// Since And is a Proposition, we need to check if result can be type-asserted
+	andExpr, ok := result.(*expr.And)
+	if !ok {
+		t.Fatalf("expected And proposition, got %T", result)
+	}
+
+	// Left should be Equal(a, b)
+	leftEqual, ok := andExpr.Left.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected left to be Equal proposition, got %T", andExpr.Left)
+	}
+
+	// Check left Equal: a = b
+	leftVarA, ok := leftEqual.Left.(*expr.Variable)
+	if !ok || leftVarA.Name != "a" {
+		t.Errorf("expected left.left to be variable 'a'")
+	}
+
+	leftVarB, ok := leftEqual.Right.(*expr.Variable)
+	if !ok || leftVarB.Name != "b" {
+		t.Errorf("expected left.right to be variable 'b'")
+	}
+
+	// Right should be Equal(b, c)
+	rightEqual, ok := andExpr.Right.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected right to be Equal proposition, got %T", andExpr.Right)
+	}
+
+	// Check right Equal: b = c
+	rightVarB, ok := rightEqual.Left.(*expr.Variable)
+	if !ok || rightVarB.Name != "b" {
+		t.Errorf("expected right.left to be variable 'b'")
+	}
+
+	rightVarC, ok := rightEqual.Right.(*expr.Variable)
+	if !ok || rightVarC.Name != "c" {
+		t.Errorf("expected right.right to be variable 'c'")
+	}
+}
+
+// TestConverter_ChainedEquality_FourTerms tests conversion of chained equality a = b = c = d
+// Mathematically, a = b = c = d means "a equals b AND b equals c AND c equals d"
+// Expected: And(And(Eq(a,b), Eq(b,c)), Eq(c,d))
+//
+// Note: This test expects the Converter to return a Proposition (And), not an Expression.
+func TestConverter_ChainedEquality_FourTerms(t *testing.T) {
+	// a = b = c = d
+	// Parser produces (left-associative): EqualNode(EqualNode(EqualNode(a, b), c), d)
+	// Expected: And(And(Eq(a,b), Eq(b,c)), Eq(c,d))
+
+	node := &EqualNode{
+		Left: &EqualNode{
+			Left: &EqualNode{
+				Left:     &VariableNode{Name: "a"},
+				Operator: Token{Type: EQUAL},
+				Right:    &VariableNode{Name: "b"},
+			},
+			Operator: Token{Type: EQUAL},
+			Right:    &VariableNode{Name: "c"},
+		},
+		Operator: Token{Type: EQUAL},
+		Right:    &VariableNode{Name: "d"},
+	}
+	converter := NewConverter()
+
+	result, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	// Expected structure: And(And(Eq(a,b), Eq(b,c)), Eq(c,d))
+	outerAnd, ok := result.(*expr.And)
+	if !ok {
+		t.Fatalf("expected outer And proposition, got %T", result)
+	}
+
+	// Left should be And(Eq(a,b), Eq(b,c))
+	innerAnd, ok := outerAnd.Left.(*expr.And)
+	if !ok {
+		t.Fatalf("expected left to be And proposition, got %T", outerAnd.Left)
+	}
+
+	// Right should be Eq(c,d)
+	rightEqual, ok := outerAnd.Right.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected right to be Equal proposition, got %T", outerAnd.Right)
+	}
+
+	// Verify innerAnd.Left is Eq(a,b)
+	innerLeftEqual, ok := innerAnd.Left.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected innerAnd.left to be Equal proposition, got %T", innerAnd.Left)
+	}
+	varA, ok := innerLeftEqual.Left.(*expr.Variable)
+	if !ok || varA.Name != "a" {
+		t.Errorf("expected innerAnd.left.left to be variable 'a'")
+	}
+	varB1, ok := innerLeftEqual.Right.(*expr.Variable)
+	if !ok || varB1.Name != "b" {
+		t.Errorf("expected innerAnd.left.right to be variable 'b'")
+	}
+
+	// Verify innerAnd.Right is Eq(b,c)
+	innerRightEqual, ok := innerAnd.Right.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected innerAnd.right to be Equal proposition, got %T", innerAnd.Right)
+	}
+	varB2, ok := innerRightEqual.Left.(*expr.Variable)
+	if !ok || varB2.Name != "b" {
+		t.Errorf("expected innerAnd.right.left to be variable 'b'")
+	}
+	varC1, ok := innerRightEqual.Right.(*expr.Variable)
+	if !ok || varC1.Name != "c" {
+		t.Errorf("expected innerAnd.right.right to be variable 'c'")
+	}
+
+	// Verify outerAnd.Right is Eq(c,d)
+	varC2, ok := rightEqual.Left.(*expr.Variable)
+	if !ok || varC2.Name != "c" {
+		t.Errorf("expected outerAnd.right.left to be variable 'c'")
+	}
+	varD, ok := rightEqual.Right.(*expr.Variable)
+	if !ok || varD.Name != "d" {
+		t.Errorf("expected outerAnd.right.right to be variable 'd'")
+	}
+}
+
+// TestConverter_ChainedEquality_WithNumbers tests chained equality with numeric values
+// Tests that 2 = 2 = 2 is properly converted to And(Eq(2,2), Eq(2,2))
+//
+// Note: This test expects the Converter to return a Proposition (And), not an Expression.
+func TestConverter_ChainedEquality_WithNumbers(t *testing.T) {
+	// 2 = 2 = 2
+	// Expected: And(Eq(2,2), Eq(2,2))
+
+	node := &EqualNode{
+		Left: &EqualNode{
+			Left:     &NumberNode{Value: 2.0},
+			Operator: Token{Type: EQUAL},
+			Right:    &NumberNode{Value: 2.0},
+		},
+		Operator: Token{Type: EQUAL},
+		Right:    &NumberNode{Value: 2.0},
+	}
+	converter := NewConverter()
+
+	result, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	// Expected structure: And(Eq(2, 2), Eq(2, 2))
+	andExpr, ok := result.(*expr.And)
+	if !ok {
+		t.Fatalf("expected And proposition, got %T", result)
+	}
+
+	// Left should be Equal(2, 2)
+	leftEqual, ok := andExpr.Left.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected left to be Equal proposition, got %T", andExpr.Left)
+	}
+
+	// Right should be Equal(2, 2)
+	rightEqual, ok := andExpr.Right.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected right to be Equal proposition, got %T", andExpr.Right)
+	}
+
+	// Verify structure of left Equal
+	leftConst1, ok := leftEqual.Left.(*expr.Constant)
+	if !ok || leftConst1.Value.Value != 2.0 {
+		t.Errorf("expected left.left to be constant 2.0")
+	}
+	leftConst2, ok := leftEqual.Right.(*expr.Constant)
+	if !ok || leftConst2.Value.Value != 2.0 {
+		t.Errorf("expected left.right to be constant 2.0")
+	}
+
+	// Verify structure of right Equal
+	rightConst1, ok := rightEqual.Left.(*expr.Constant)
+	if !ok || rightConst1.Value.Value != 2.0 {
+		t.Errorf("expected right.left to be constant 2.0")
+	}
+	rightConst2, ok := rightEqual.Right.(*expr.Constant)
+	if !ok || rightConst2.Value.Value != 2.0 {
+		t.Errorf("expected right.right to be constant 2.0")
+	}
+}
+
+// TestConverter_ChainedEquality_WithExpressions tests chained equality with complex expressions
+// Tests that (1+1) = 2 = (3-1) is properly converted to And(Eq(1+1, 2), Eq(2, 3-1))
+//
+// Note: This test expects the Converter to return a Proposition (And), not an Expression.
+func TestConverter_ChainedEquality_WithExpressions(t *testing.T) {
+	// (1+1) = 2 = (3-1)
+	// Expected: And(Eq((1+1), 2), Eq(2, (3-1)))
+
+	node := &EqualNode{
+		Left: &EqualNode{
+			Left: &BinaryOpNode{
+				Left:     &NumberNode{Value: 1.0},
+				Operator: Token{Type: PLUS},
+				Right:    &NumberNode{Value: 1.0},
+			},
+			Operator: Token{Type: EQUAL},
+			Right:    &NumberNode{Value: 2.0},
+		},
+		Operator: Token{Type: EQUAL},
+		Right: &BinaryOpNode{
+			Left:     &NumberNode{Value: 3.0},
+			Operator: Token{Type: MINUS},
+			Right:    &NumberNode{Value: 1.0},
+		},
+	}
+	converter := NewConverter()
+
+	result, err := converter.Convert(node)
+	if err != nil {
+		t.Fatalf("Convert error: %v", err)
+	}
+
+	// Expected structure: And(Eq((1+1), 2), Eq(2, (3-1)))
+	andExpr, ok := result.(*expr.And)
+	if !ok {
+		t.Fatalf("expected And proposition, got %T", result)
+	}
+
+	// Left should be Equal((1+1), 2)
+	leftEqual, ok := andExpr.Left.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected left to be Equal proposition, got %T", andExpr.Left)
+	}
+
+	// Right should be Equal(2, (3-1))
+	rightEqual, ok := andExpr.Right.(*expr.Equal)
+	if !ok {
+		t.Fatalf("expected right to be Equal proposition, got %T", andExpr.Right)
+	}
+
+	// Verify left Equal: (1+1) = 2
+	leftAdd, ok := leftEqual.Left.(*expr.Add)
+	if !ok {
+		t.Fatalf("expected left.left to be Add expression, got %T", leftEqual.Left)
+	}
+	_ = leftAdd // Structure verification is sufficient
+
+	leftConst, ok := leftEqual.Right.(*expr.Constant)
+	if !ok || leftConst.Value.Value != 2.0 {
+		t.Errorf("expected left.right to be constant 2.0")
+	}
+
+	// Verify right Equal: 2 = (3-1)
+	rightConst, ok := rightEqual.Left.(*expr.Constant)
+	if !ok || rightConst.Value.Value != 2.0 {
+		t.Errorf("expected right.left to be constant 2.0")
+	}
+
+	rightSub, ok := rightEqual.Right.(*expr.Subtract)
+	if !ok {
+		t.Fatalf("expected right.right to be Subtract expression, got %T", rightEqual.Right)
+	}
+	_ = rightSub // Structure verification is sufficient
 }

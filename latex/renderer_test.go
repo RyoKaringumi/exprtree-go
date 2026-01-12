@@ -258,9 +258,15 @@ func TestRoundTrip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Parse the input
-			expression, err := ParseLatex(tt.input)
+			result1, err := ParseLatex(tt.input)
 			if err != nil {
 				t.Fatalf("ParseLatex failed: %v", err)
+			}
+
+			// Cast to Expression
+			expression, ok := result1.(expr.Expression)
+			if !ok {
+				t.Fatalf("expected Expression, got %T", result1)
 			}
 
 			// Convert back to string
@@ -270,9 +276,15 @@ func TestRoundTrip(t *testing.T) {
 			}
 
 			// Parse the result again
-			expression2, err := ParseLatex(result)
+			result2, err := ParseLatex(result)
 			if err != nil {
 				t.Fatalf("Second ParseLatex failed: %v", err)
+			}
+
+			// Cast to Expression
+			expression2, ok := result2.(expr.Expression)
+			if !ok {
+				t.Fatalf("expected Expression, got %T", result2)
 			}
 
 			// Evaluate both and compare

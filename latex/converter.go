@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Converter converts LaTeX AST to Expression tree
+// Converter converts LaTeX AST to Expression tree or Proposition
 type Converter struct {
 	errors []string
 }
@@ -17,8 +17,9 @@ func NewConverter() *Converter {
 	}
 }
 
-// Convert converts a LatexNode to an Expression
-func (c *Converter) Convert(node LatexNode) (expr.Expression, error) {
+// Convert converts a LatexNode to an Expression or Proposition
+// Returns interface{} to support both expr.Expression and expr.Proposition types
+func (c *Converter) Convert(node LatexNode) (interface{}, error) {
 	if node == nil {
 		return nil, fmt.Errorf("cannot convert nil node")
 	}
@@ -56,16 +57,27 @@ func (c *Converter) convertVariable(node *VariableNode) expr.Expression {
 }
 
 // convertBinaryOp converts a BinaryOpNode to the appropriate Expression
-func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error) {
+func (c *Converter) convertBinaryOp(node *BinaryOpNode) (interface{}, error) {
 	// Convert left and right children
-	left, err := c.Convert(node.Left)
+	leftResult, err := c.Convert(node.Left)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert left operand: %w", err)
 	}
 
-	right, err := c.Convert(node.Right)
+	rightResult, err := c.Convert(node.Right)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert right operand: %w", err)
+	}
+
+	// Binary operations require Expression operands
+	left, ok := leftResult.(expr.Expression)
+	if !ok {
+		return nil, fmt.Errorf("left operand must be an Expression, got %T", leftResult)
+	}
+
+	right, ok := rightResult.(expr.Expression)
+	if !ok {
+		return nil, fmt.Errorf("right operand must be an Expression, got %T", rightResult)
 	}
 
 	// Create appropriate Expression based on operator
@@ -85,9 +97,57 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (expr.Expression, error)
 	}
 }
 
-// convertEqual converts an EqualNode to EqualExpression
-func (c *Converter) convertEqual(node *EqualNode) (expr.Expression, error) {
-	// Convert left and right children
+// convertEqual converts an EqualNode to Equal or And proposition
+// Handles chained equality: a = b = c becomes And(Eq(a,b), Eq(b,c))
+func (c *Converter) convertEqual(node *EqualNode) (interface{}, error) {
+	// Check if left side is also an EqualNode (chained equality)
+	if leftEqualNode, ok := node.Left.(*EqualNode); ok {
+		// This is a chained equality: (a = b) = c
+		// Convert to: And(Eq(a, b), Eq(b, c))
+
+		// Recursively convert left side (may produce And or Equal)
+		leftResult, err := c.convertEqual(leftEqualNode)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert left equal: %w", err)
+		}
+
+		// Get the middle expression from the left equal node's right side
+		middle, err := c.Convert(leftEqualNode.Right)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert middle operand: %w", err)
+		}
+
+		// Convert the rightmost expression
+		right, err := c.Convert(node.Right)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert right operand: %w", err)
+		}
+
+		// Ensure middle and right are Expressions for Equal
+		middleExpr, ok := middle.(expr.Expression)
+		if !ok {
+			return nil, fmt.Errorf("middle operand must be an Expression, got %T", middle)
+		}
+
+		rightExpr, ok := right.(expr.Expression)
+		if !ok {
+			return nil, fmt.Errorf("right operand must be an Expression, got %T", right)
+		}
+
+		// Create new Equal(middle, right)
+		newEqual := expr.NewEqual(middleExpr, rightExpr)
+
+		// Convert leftResult to Proposition
+		leftProp, ok := leftResult.(expr.Proposition)
+		if !ok {
+			return nil, fmt.Errorf("left result must be a Proposition, got %T", leftResult)
+		}
+
+		// Return And(leftResult, Equal(middle, right))
+		return expr.NewAnd(leftProp, newEqual), nil
+	}
+
+	// Not a chained equality, convert as simple Equal
 	left, err := c.Convert(node.Left)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert left operand: %w", err)
@@ -98,17 +158,28 @@ func (c *Converter) convertEqual(node *EqualNode) (expr.Expression, error) {
 		return nil, fmt.Errorf("failed to convert right operand: %w", err)
 	}
 
-	return expr.NewEqual(left, right), nil
+	// Ensure left and right are Expressions
+	leftExpr, ok := left.(expr.Expression)
+	if !ok {
+		return nil, fmt.Errorf("left operand must be an Expression, got %T", left)
+	}
+
+	rightExpr, ok := right.(expr.Expression)
+	if !ok {
+		return nil, fmt.Errorf("right operand must be an Expression, got %T", right)
+	}
+
+	return expr.NewEqual(leftExpr, rightExpr), nil
 }
 
 // convertGroup converts a GroupNode by converting its inner expression
-func (c *Converter) convertGroup(node *GroupNode) (expr.Expression, error) {
+func (c *Converter) convertGroup(node *GroupNode) (interface{}, error) {
 	// Groups are just for parsing precedence, we don't need them in the Expression tree
 	return c.Convert(node.Inner)
 }
 
 // convertCommand converts a CommandNode to the appropriate Expression
-func (c *Converter) convertCommand(node *CommandNode) (expr.Expression, error) {
+func (c *Converter) convertCommand(node *CommandNode) (interface{}, error) {
 	switch node.Name {
 	case "sqrt":
 		return c.convertSqrt(node)
@@ -118,21 +189,32 @@ func (c *Converter) convertCommand(node *CommandNode) (expr.Expression, error) {
 }
 
 // convertSqrt converts \sqrt command to SqrtExpression
-func (c *Converter) convertSqrt(node *CommandNode) (expr.Expression, error) {
+func (c *Converter) convertSqrt(node *CommandNode) (interface{}, error) {
 	// Convert the argument (radicand)
-	argument, err := c.Convert(node.Argument)
+	argumentResult, err := c.Convert(node.Argument)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert sqrt argument: %w", err)
 	}
 
+	// Sqrt requires Expression argument
+	argument, ok := argumentResult.(expr.Expression)
+	if !ok {
+		return nil, fmt.Errorf("sqrt argument must be an Expression, got %T", argumentResult)
+	}
+
 	// Handle optional root degree [n]
 	if node.Optional != nil {
-		optionalExpr, err := c.Convert(node.Optional)
+		optionalResult, err := c.Convert(node.Optional)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert sqrt optional argument: %w", err)
 		}
 
 		// Extract numeric value from optional argument
+		optionalExpr, ok := optionalResult.(expr.Expression)
+		if !ok {
+			return nil, fmt.Errorf("sqrt optional argument must be an Expression, got %T", optionalResult)
+		}
+
 		constant, ok := optionalExpr.(*expr.Constant)
 		if !ok {
 			return nil, fmt.Errorf("sqrt optional argument must be a constant number")

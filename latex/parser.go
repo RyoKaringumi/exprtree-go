@@ -291,8 +291,9 @@ func (p *Parser) Errors() []string {
 	return p.errors
 }
 
-// ParseLatex parses a LaTeX string and returns an Expression tree
-func ParseLatex(input string) (expr.Expression, error) {
+// ParseLatex parses a LaTeX string and returns an Expression or Proposition
+// The return value can be either expr.Expression or expr.Proposition depending on the input
+func ParseLatex(input string) (interface{}, error) {
 	lexer := NewLexer(input)
 	parser := NewParser(lexer)
 	ast, err := parser.Parse()
@@ -301,27 +302,34 @@ func ParseLatex(input string) (expr.Expression, error) {
 	}
 
 	converter := NewConverter()
-	expression, err := converter.Convert(ast)
+	result, err := converter.Convert(ast)
 	if err != nil {
 		return nil, fmt.Errorf("conversion error: %w", err)
 	}
 
-	return expression, nil
+	return result, nil
 }
 
 // ParseAndEval parses a LaTeX string and evaluates it, returning the result
+// Only works with expressions that can be evaluated (expr.Expression), not propositions
 func ParseAndEval(input string) (*expr.NumberValue, error) {
-	expression, err := ParseLatex(input)
+	result, err := ParseLatex(input)
 	if err != nil {
 		return nil, err
 	}
 
-	result, ok := expression.Eval()
+	// Try to cast to Expression for evaluation
+	expression, ok := result.(expr.Expression)
+	if !ok {
+		return nil, fmt.Errorf("result is not an evaluable expression (got %T)", result)
+	}
+
+	evalResult, ok := expression.Eval()
 	if !ok {
 		return nil, fmt.Errorf("evaluation failed")
 	}
 
-	num, ok := result.(*expr.NumberValue)
+	num, ok := evalResult.(*expr.NumberValue)
 	if !ok {
 		return nil, fmt.Errorf("result is not a number")
 	}
