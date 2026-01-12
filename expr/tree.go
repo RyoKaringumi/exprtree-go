@@ -26,83 +26,87 @@ type Expression interface {
 	Eval() (ExpressValue, bool)
 }
 
-type BinaryExpression struct {
-	Expression
+type Add struct {
 	Left  Expression
 	Right Expression
 }
 
-func (b *BinaryExpression) Children() []Expression {
-	return []Expression{b.Left, b.Right}
-}
-
-type Add struct {
-	BinaryExpression
-}
-
 func NewAdd(left, right Expression) *Add {
 	return &Add{
-		BinaryExpression: BinaryExpression{
-			Left:  left,
-			Right: right,
-		},
+		Left:  left,
+		Right: right,
 	}
 }
 
+func (e *Add) Children() []Expression {
+	return []Expression{e.Left, e.Right}
+}
+
 type Subtract struct {
-	BinaryExpression
+	Left  Expression
+	Right Expression
 }
 
 func NewSubtract(left, right Expression) *Subtract {
 	return &Subtract{
-		BinaryExpression: BinaryExpression{
-			Left:  left,
-			Right: right,
-		},
+		Left:  left,
+		Right: right,
 	}
 }
 
+func (e *Subtract) Children() []Expression {
+	return []Expression{e.Left, e.Right}
+}
+
 type Multiply struct {
-	BinaryExpression
+	Left  Expression
+	Right Expression
 }
 
 func NewMultiply(left, right Expression) *Multiply {
 	return &Multiply{
-		BinaryExpression: BinaryExpression{
-			Left:  left,
-			Right: right,
-		},
+		Left:  left,
+		Right: right,
 	}
 }
 
+func (e *Multiply) Children() []Expression {
+	return []Expression{e.Left, e.Right}
+}
+
 type Divide struct {
-	BinaryExpression
+	Left  Expression
+	Right Expression
 }
 
 func NewDivide(left, right Expression) *Divide {
 	return &Divide{
-		BinaryExpression: BinaryExpression{
-			Left:  left,
-			Right: right,
-		},
+		Left:  left,
+		Right: right,
 	}
+}
+
+func (e *Divide) Children() []Expression {
+	return []Expression{e.Left, e.Right}
 }
 
 type Proposition interface {
 }
 
 type Equal struct {
-	Proposition
-	BinaryExpression
+	Left  Expression
+	Right Expression
 }
 
 func NewEqual(left, right Expression) *Equal {
 	return &Equal{
-		BinaryExpression: BinaryExpression{
-			Left:  left,
-			Right: right,
-		},
+		Left:  left,
+		Right: right,
 	}
+}
+
+func (e *Equal) Children() []Expression {
+	return []Expression{e.Left, e.Right}
 }
 
 type And struct {
@@ -451,16 +455,19 @@ func Substitute(expr Expression, bindings map[string]Expression) Expression {
 }
 
 type Power struct {
-	BinaryExpression
+	Left  Expression
+	Right Expression
 }
 
 func NewPower(base, exponent Expression) *Power {
 	return &Power{
-		BinaryExpression: BinaryExpression{
-			Left:  base,
-			Right: exponent,
-		},
+		Left:  base,
+		Right: exponent,
 	}
+}
+
+func (e *Power) Children() []Expression {
+	return []Expression{e.Left, e.Right}
 }
 
 func (e *Power) Eval() (ExpressValue, bool) {
