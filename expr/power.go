@@ -1,6 +1,9 @@
 package expr
 
-import "exprtree/value"
+import (
+	"exprtree/value"
+	"math"
+)
 
 type Power struct {
 	Binary
@@ -22,7 +25,23 @@ func NewPower(base, exponent Expr) *Power {
 }
 
 func (p *Power) Eval() (value.Value, bool) {
-	return nil, false
+	baseVal, ok := p.base.Eval()
+	if !ok {
+		return nil, false
+	}
+	exponentVal, ok := p.exponent.Eval()
+	if !ok {
+		return nil, false
+	}
+
+	baseReal, ok1 := baseVal.(*value.RealValue)
+	exponentReal, ok2 := exponentVal.(*value.RealValue)
+	if !ok1 || !ok2 {
+		return nil, false
+	}
+
+	result := math.Pow(baseReal.Float64(), exponentReal.Float64())
+	return value.NewRealValue(result), true
 }
 
 func (p *Power) Base() Expr {

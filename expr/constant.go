@@ -16,3 +16,7 @@ func NewConstant(value value.Value) *Constant {
 func (c *Constant) Value() value.Value {
 	return c.value
 }
+
+func (c *Constant) Eval() (value.Value, bool) {
+	return c.value, true
+}

@@ -35,6 +35,16 @@ func (e *Equal) Eval() (value.Value, bool) {
 		return nil, false
 	}
 
-	isEqual := leftVal == rightVal
-	return value.NewBoolValue(isEqual), true
+	switch leftVal.Kind() {
+	case value.RealKind:
+		leftReal, ok1 := leftVal.(*value.RealValue)
+		rightReal, ok2 := rightVal.(*value.RealValue)
+		if !ok1 || !ok2 {
+			return nil, false
+		}
+		result := leftReal.Float64() == rightReal.Float64()
+		return value.NewBoolValue(result), true
+	default:
+		return nil, false
+	}
 }
