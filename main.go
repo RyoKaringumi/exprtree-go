@@ -3,6 +3,8 @@ package main
 import (
 	"exprtree/expr"
 	"exprtree/latex"
+	"exprtree/prop"
+	"exprtree/value"
 	"fmt"
 )
 
@@ -26,7 +28,7 @@ func testSimpleEquality() {
 	}
 
 	// Simple equality returns an Equal (which is a Proposition)
-	equalExpr, ok := result.(*expr.Equal)
+	equalExpr, ok := result.(*prop.Equal)
 	if !ok {
 		fmt.Printf("Expected Equal, got %T\n", result)
 		return
@@ -39,7 +41,7 @@ func testSimpleEquality() {
 		return
 	}
 
-	boolResult, ok := evalResult.(*expr.BoolValue)
+	boolResult, ok := evalResult.(*value.BoolValue)
 	if !ok {
 		fmt.Printf("Expected BoolValue, got %T\n", evalResult)
 		return
@@ -59,7 +61,7 @@ func testChainedEquality() {
 	}
 
 	// Chained equality returns an And proposition
-	andExpr, ok := result.(*expr.And)
+	andExpr, ok := result.(*prop.And)
 	if !ok {
 		fmt.Printf("Expected And, got %T\n", result)
 		return
@@ -70,18 +72,18 @@ func testChainedEquality() {
 	fmt.Printf("型: %T\n", andExpr)
 
 	// Show the structure
-	leftEqual, ok := andExpr.Left.(*expr.Equal)
+	leftEqual, ok := andExpr.Left().(*prop.Equal)
 	if ok {
-		leftVar1, _ := leftEqual.Left.(*expr.Variable)
-		leftVar2, _ := leftEqual.Right.(*expr.Variable)
-		fmt.Printf("  左側: Equal(%s, %s)\n", leftVar1.Name, leftVar2.Name)
+		leftVar1, _ := leftEqual.Left().(*expr.Variable)
+		leftVar2, _ := leftEqual.Right().(*expr.Variable)
+		fmt.Printf("  左側: Equal(%s, %s)\n", leftVar1.Name(), leftVar2.Name())
 	}
 
-	rightEqual, ok := andExpr.Right.(*expr.Equal)
+	rightEqual, ok := andExpr.Right().(*prop.Equal)
 	if ok {
-		rightVar1, _ := rightEqual.Left.(*expr.Variable)
-		rightVar2, _ := rightEqual.Right.(*expr.Variable)
-		fmt.Printf("  右側: Equal(%s, %s)\n", rightVar1.Name, rightVar2.Name)
+		rightVar1, _ := rightEqual.Left().(*expr.Variable)
+		rightVar2, _ := rightEqual.Right().(*expr.Variable)
+		fmt.Printf("  右側: Equal(%s, %s)\n", rightVar1.Name(), rightVar2.Name())
 	}
 }
 
@@ -94,7 +96,7 @@ func testFourTermEquality() {
 	}
 
 	// Four-term chained equality returns nested And propositions
-	outerAnd, ok := result.(*expr.And)
+	outerAnd, ok := result.(*prop.And)
 	if !ok {
 		fmt.Printf("Expected And, got %T\n", result)
 		return
@@ -105,24 +107,24 @@ func testFourTermEquality() {
 	fmt.Printf("型: %T\n", outerAnd)
 
 	// Show nested structure
-	innerAnd, ok := outerAnd.Left.(*expr.And)
+	innerAnd, ok := outerAnd.Left().(*prop.And)
 	if ok {
 		fmt.Printf("  外側のAnd.Left: And (入れ子構造)\n")
 
-		innerLeftEqual, ok := innerAnd.Left.(*expr.Equal)
+		innerLeftEqual, ok := innerAnd.Left().(*prop.Equal)
 		if ok {
 			fmt.Printf("    内側のAnd.Left: Equal(1, 1)\n")
 			_ = innerLeftEqual
 		}
 
-		innerRightEqual, ok := innerAnd.Right.(*expr.Equal)
+		innerRightEqual, ok := innerAnd.Right().(*prop.Equal)
 		if ok {
 			fmt.Printf("    内側のAnd.Right: Equal(1, 1)\n")
 			_ = innerRightEqual
 		}
 	}
 
-	rightEqual, ok := outerAnd.Right.(*expr.Equal)
+	rightEqual, ok := outerAnd.Right().(*prop.Equal)
 	if ok {
 		fmt.Printf("  外側のAnd.Right: Equal(1, 1)\n")
 		_ = rightEqual

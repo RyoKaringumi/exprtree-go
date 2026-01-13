@@ -2,6 +2,7 @@ package latex
 
 import (
 	"exprtree/expr"
+	"exprtree/value"
 	"fmt"
 	"strings"
 )
@@ -312,14 +313,14 @@ func ParseLatex(input string) (interface{}, error) {
 
 // ParseAndEval parses a LaTeX string and evaluates it, returning the result
 // Only works with expressions that can be evaluated (expr.Expression), not propositions
-func ParseAndEval(input string) (*expr.NumberValue, error) {
+func ParseAndEval(input string) (*value.RealValue, error) {
 	result, err := ParseLatex(input)
 	if err != nil {
 		return nil, err
 	}
 
 	// Try to cast to Expression for evaluation
-	expression, ok := result.(expr.Expression)
+	expression, ok := result.(expr.Expr)
 	if !ok {
 		return nil, fmt.Errorf("result is not an evaluable expression (got %T)", result)
 	}
@@ -329,7 +330,7 @@ func ParseAndEval(input string) (*expr.NumberValue, error) {
 		return nil, fmt.Errorf("evaluation failed")
 	}
 
-	num, ok := evalResult.(*expr.NumberValue)
+	num, ok := evalResult.(*value.RealValue)
 	if !ok {
 		return nil, fmt.Errorf("result is not a number")
 	}

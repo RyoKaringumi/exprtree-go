@@ -2,6 +2,8 @@ package latex
 
 import (
 	"exprtree/expr"
+	"exprtree/prop"
+	"exprtree/value"
 	"fmt"
 )
 
@@ -18,7 +20,7 @@ func NewConverter() *Converter {
 }
 
 // Convert converts a LatexNode to an Expression or Proposition
-// Returns interface{} to support both expr.Expression and expr.Proposition types
+// Returns interface{} to support both expr.Expr and expr.Proposition types
 func (c *Converter) Convert(node LatexNode) (interface{}, error) {
 	if node == nil {
 		return nil, fmt.Errorf("cannot convert nil node")
@@ -43,17 +45,13 @@ func (c *Converter) Convert(node LatexNode) (interface{}, error) {
 }
 
 // convertNumber converts a NumberNode to a Constant
-func (c *Converter) convertNumber(node *NumberNode) expr.Expression {
-	return &expr.Constant{
-		Value: expr.NumberValue{Value: node.Value},
-	}
+func (c *Converter) convertNumber(node *NumberNode) expr.Expr {
+	return expr.NewConstant(value.NewRealValue(node.Value))
 }
 
 // convertVariable converts a VariableNode to a Variable
-func (c *Converter) convertVariable(node *VariableNode) expr.Expression {
-	return &expr.Variable{
-		Name: node.Name,
-	}
+func (c *Converter) convertVariable(node *VariableNode) expr.Expr {
+	return expr.NewVariable(node.Name)
 }
 
 // convertBinaryOp converts a BinaryOpNode to the appropriate Expression
@@ -70,12 +68,12 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (interface{}, error) {
 	}
 
 	// Binary operations require Expression operands
-	left, ok := leftResult.(expr.Expression)
+	left, ok := leftResult.(expr.Expr)
 	if !ok {
 		return nil, fmt.Errorf("left operand must be an Expression, got %T", leftResult)
 	}
 
-	right, ok := rightResult.(expr.Expression)
+	right, ok := rightResult.(expr.Expr)
 	if !ok {
 		return nil, fmt.Errorf("right operand must be an Expression, got %T", rightResult)
 	}
@@ -85,11 +83,11 @@ func (c *Converter) convertBinaryOp(node *BinaryOpNode) (interface{}, error) {
 	case PLUS:
 		return expr.NewAdd(left, right), nil
 	case MINUS:
-		return expr.NewSubtract(left, right), nil
+		return expr.NewSub(left, right), nil
 	case MULTIPLY:
-		return expr.NewMultiply(left, right), nil
+		return expr.NewMul(left, right), nil
 	case DIVIDE:
-		return expr.NewDivide(left, right), nil
+		return expr.NewDiv(left, right), nil
 	case CARET:
 		return expr.NewPower(left, right), nil
 	default:
@@ -124,27 +122,27 @@ func (c *Converter) convertEqual(node *EqualNode) (interface{}, error) {
 		}
 
 		// Ensure middle and right are Expressions for Equal
-		middleExpr, ok := middle.(expr.Expression)
+		middleExpr, ok := middle.(expr.Expr)
 		if !ok {
 			return nil, fmt.Errorf("middle operand must be an Expression, got %T", middle)
 		}
 
-		rightExpr, ok := right.(expr.Expression)
+		rightExpr, ok := right.(expr.Expr)
 		if !ok {
 			return nil, fmt.Errorf("right operand must be an Expression, got %T", right)
 		}
 
 		// Create new Equal(middle, right)
-		newEqual := expr.NewEqual(middleExpr, rightExpr)
+		newEqual := prop.NewEqual(middleExpr, rightExpr)
 
 		// Convert leftResult to Proposition
-		leftProp, ok := leftResult.(expr.Proposition)
+		leftProp, ok := leftResult.(prop.Proposition)
 		if !ok {
 			return nil, fmt.Errorf("left result must be a Proposition, got %T", leftResult)
 		}
 
 		// Return And(leftResult, Equal(middle, right))
-		return expr.NewAnd(leftProp, newEqual), nil
+		return prop.NewAnd(leftProp, newEqual), nil
 	}
 
 	// Not a chained equality, convert as simple Equal
@@ -159,17 +157,17 @@ func (c *Converter) convertEqual(node *EqualNode) (interface{}, error) {
 	}
 
 	// Ensure left and right are Expressions
-	leftExpr, ok := left.(expr.Expression)
+	leftExpr, ok := left.(expr.Expr)
 	if !ok {
 		return nil, fmt.Errorf("left operand must be an Expression, got %T", left)
 	}
 
-	rightExpr, ok := right.(expr.Expression)
+	rightExpr, ok := right.(expr.Expr)
 	if !ok {
 		return nil, fmt.Errorf("right operand must be an Expression, got %T", right)
 	}
 
-	return expr.NewEqual(leftExpr, rightExpr), nil
+	return prop.NewEqual(leftExpr, rightExpr), nil
 }
 
 // convertGroup converts a GroupNode by converting its inner expression
@@ -197,7 +195,7 @@ func (c *Converter) convertSqrt(node *CommandNode) (interface{}, error) {
 	}
 
 	// Sqrt requires Expression argument
-	argument, ok := argumentResult.(expr.Expression)
+	argument, ok := argumentResult.(expr.Expr)
 	if !ok {
 		return nil, fmt.Errorf("sqrt argument must be an Expression, got %T", argumentResult)
 	}
@@ -210,7 +208,7 @@ func (c *Converter) convertSqrt(node *CommandNode) (interface{}, error) {
 		}
 
 		// Extract numeric value from optional argument
-		optionalExpr, ok := optionalResult.(expr.Expression)
+		optionalExpr, ok := optionalResult.(expr.Expr)
 		if !ok {
 			return nil, fmt.Errorf("sqrt optional argument must be an Expression, got %T", optionalResult)
 		}
@@ -220,7 +218,7 @@ func (c *Converter) convertSqrt(node *CommandNode) (interface{}, error) {
 			return nil, fmt.Errorf("sqrt optional argument must be a constant number")
 		}
 
-		return expr.NewNthRoot(argument, constant.Value.Value), nil
+		return expr.NewNthRoot(argument, constant), nil
 	}
 
 	// Default to square root (N=2)

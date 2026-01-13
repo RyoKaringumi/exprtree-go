@@ -103,7 +103,7 @@ func RenderLatex(node LatexNode) string {
 }
 
 // ExpressionToLatex converts an Expression tree directly to a LaTeX string
-func ExpressionToLatex(expression expr.Expression) (string, error) {
+func ExpressionToLatex(expression expr.Expr) (string, error) {
 	// First, export Expression to LaTeX AST
 	ast, err := ExportToLatex(expression)
 	if err != nil {

@@ -2,6 +2,7 @@ package latex
 
 import (
 	"exprtree/expr"
+	"exprtree/value"
 	"testing"
 )
 
@@ -37,7 +38,7 @@ func TestRenderSimpleBinaryOp(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			node := &BinaryOpNode{
-				Left:  &NumberNode{Value: tt.left},
+				Left: &NumberNode{Value: tt.left},
 				Operator: Token{
 					Type:    tt.op,
 					Literal: tt.opLit,
@@ -189,37 +190,37 @@ func TestRenderAssociativity(t *testing.T) {
 func TestExpressionToLatex(t *testing.T) {
 	tests := []struct {
 		name     string
-		expr     expr.Expression
+		expr     expr.Expr
 		expected string
 	}{
 		{
 			name:     "Simple constant",
-			expr:     &expr.Constant{Value: expr.NumberValue{Value: 42}},
+			expr:     expr.NewConstant(value.NewRealValue(42)),
 			expected: "42",
 		},
 		{
 			name:     "Simple addition",
-			expr:     expr.NewAdd(&expr.Constant{Value: expr.NumberValue{Value: 2}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
+			expr:     expr.NewAdd(expr.NewConstant(value.NewRealValue(2)), expr.NewConstant(value.NewRealValue(3))),
 			expected: "2 + 3",
 		},
 		{
 			name: "Complex expression with precedence",
-			expr: expr.NewMultiply(
+			expr: expr.NewMul(
 				expr.NewAdd(
-					&expr.Constant{Value: expr.NumberValue{Value: 2}},
-					&expr.Constant{Value: expr.NumberValue{Value: 3}},
+					expr.NewConstant(value.NewRealValue(2)),
+					expr.NewConstant(value.NewRealValue(3)),
 				),
-				&expr.Constant{Value: expr.NumberValue{Value: 4}},
+				expr.NewConstant(value.NewRealValue(4)),
 			),
 			expected: "(2 + 3) * 4",
 		},
 		{
 			name: "Nested operations",
 			expr: expr.NewAdd(
-				&expr.Constant{Value: expr.NumberValue{Value: 2}},
-				expr.NewMultiply(
-					&expr.Constant{Value: expr.NumberValue{Value: 3}},
-					&expr.Constant{Value: expr.NumberValue{Value: 4}},
+				expr.NewConstant(value.NewRealValue(2)),
+				expr.NewMul(
+					expr.NewConstant(value.NewRealValue(3)),
+					expr.NewConstant(value.NewRealValue(4)),
 				),
 			),
 			expected: "2 + 3 * 4",
@@ -264,7 +265,7 @@ func TestRoundTrip(t *testing.T) {
 			}
 
 			// Cast to Expression
-			expression, ok := result1.(expr.Expression)
+			expression, ok := result1.(expr.Expr)
 			if !ok {
 				t.Fatalf("expected Expression, got %T", result1)
 			}
@@ -282,7 +283,7 @@ func TestRoundTrip(t *testing.T) {
 			}
 
 			// Cast to Expression
-			expression2, ok := result2.(expr.Expression)
+			expression2, ok := result2.(expr.Expr)
 			if !ok {
 				t.Fatalf("expected Expression, got %T", result2)
 			}
@@ -295,8 +296,8 @@ func TestRoundTrip(t *testing.T) {
 				t.Fatalf("Evaluation failed")
 			}
 
-			num1, ok1 := val1.(*expr.NumberValue)
-			num2, ok2 := val2.(*expr.NumberValue)
+			num1, ok1 := val1.(*value.RealValue)
+			num2, ok2 := val2.(*value.RealValue)
 
 			if !ok1 || !ok2 {
 				t.Fatalf("Result is not a number")

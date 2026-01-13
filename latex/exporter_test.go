@@ -2,14 +2,13 @@ package latex
 
 import (
 	"exprtree/expr"
+	"exprtree/value"
 	"testing"
 )
 
 func TestExportConstant(t *testing.T) {
 	// Create a constant expression
-	constant := &expr.Constant{
-		Value: expr.NumberValue{Value: 42.5},
-	}
+	constant := expr.NewConstant(value.NewRealValue(42.5))
 
 	// Export to LaTeX AST
 	exporter := NewExporter()
@@ -32,8 +31,8 @@ func TestExportConstant(t *testing.T) {
 
 func TestExportAddExpression(t *testing.T) {
 	// Create: 2 + 3
-	left := &expr.Constant{Value: expr.NumberValue{Value: 2}}
-	right := &expr.Constant{Value: expr.NumberValue{Value: 3}}
+	left := expr.NewConstant(value.NewRealValue(2))
+	right := expr.NewConstant(value.NewRealValue(3))
 	addExpr := expr.NewAdd(left, right)
 
 	// Export to LaTeX AST
@@ -70,11 +69,11 @@ func TestExportAddExpression(t *testing.T) {
 func TestExportComplexExpression(t *testing.T) {
 	// Create: (2 + 3) * 4
 	left := expr.NewAdd(
-		&expr.Constant{Value: expr.NumberValue{Value: 2}},
-		&expr.Constant{Value: expr.NumberValue{Value: 3}},
+		expr.NewConstant(value.NewRealValue(2)),
+		expr.NewConstant(value.NewRealValue(3)),
 	)
-	right := &expr.Constant{Value: expr.NumberValue{Value: 4}}
-	multExpr := expr.NewMultiply(left, right)
+	right := expr.NewConstant(value.NewRealValue(4))
+	multExpr := expr.NewMul(left, right)
 
 	// Export to LaTeX AST
 	exporter := NewExporter()
@@ -100,27 +99,27 @@ func TestExportComplexExpression(t *testing.T) {
 func TestExportAllOperators(t *testing.T) {
 	tests := []struct {
 		name     string
-		expr     expr.Expression
+		expr     expr.Expr
 		expected TokenType
 	}{
 		{
 			name:     "Addition",
-			expr:     expr.NewAdd(&expr.Constant{Value: expr.NumberValue{Value: 1}}, &expr.Constant{Value: expr.NumberValue{Value: 2}}),
+			expr:     expr.NewAdd(expr.NewConstant(value.NewRealValue(1)), expr.NewConstant(value.NewRealValue(2))),
 			expected: PLUS,
 		},
 		{
 			name:     "Subtraction",
-			expr:     expr.NewSubtract(&expr.Constant{Value: expr.NumberValue{Value: 5}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
+			expr:     expr.NewSub(expr.NewConstant(value.NewRealValue(5)), expr.NewConstant(value.NewRealValue(3))),
 			expected: MINUS,
 		},
 		{
 			name:     "Multiplication",
-			expr:     expr.NewMultiply(&expr.Constant{Value: expr.NumberValue{Value: 2}}, &expr.Constant{Value: expr.NumberValue{Value: 3}}),
+			expr:     expr.NewMul(expr.NewConstant(value.NewRealValue(2)), expr.NewConstant(value.NewRealValue(3))),
 			expected: MULTIPLY,
 		},
 		{
 			name:     "Division",
-			expr:     expr.NewDivide(&expr.Constant{Value: expr.NumberValue{Value: 10}}, &expr.Constant{Value: expr.NumberValue{Value: 2}}),
+			expr:     expr.NewDiv(expr.NewConstant(value.NewRealValue(10)), expr.NewConstant(value.NewRealValue(2))),
 			expected: DIVIDE,
 		},
 	}

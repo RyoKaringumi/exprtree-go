@@ -3,6 +3,7 @@ package main
 import (
 	"exprtree/expr"
 	"exprtree/latex"
+	"exprtree/value"
 	"testing"
 )
 
@@ -31,8 +32,8 @@ func TestIntegration_SimpleArithmetic(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseAndEval failed: %v", err)
 			}
-			if result.Value != tt.expected {
-				t.Errorf("expected %f, got %f", tt.expected, result.Value)
+			if result.Float64() != tt.expected {
+				t.Errorf("expected %f, got %f", tt.expected, result.Float64())
 			}
 		})
 	}
@@ -55,8 +56,8 @@ func TestIntegration_DecimalNumbers(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseAndEval failed: %v", err)
 			}
-			if result.Value != tt.expected {
-				t.Errorf("expected %f, got %f", tt.expected, result.Value)
+			if result.Float64() != tt.expected {
+				t.Errorf("expected %f, got %f", tt.expected, result.Float64())
 			}
 		})
 	}
@@ -64,11 +65,11 @@ func TestIntegration_DecimalNumbers(t *testing.T) {
 
 func TestIntegration_Errors(t *testing.T) {
 	tests := []string{
-		"2 +",      // Incomplete expression
-		"(2 + 3",   // Unmatched paren
-		"2 + + 3",  // Invalid syntax
-		"",         // Empty input
-		"* 2",      // Missing left operand
+		"2 +",     // Incomplete expression
+		"(2 + 3",  // Unmatched paren
+		"2 + + 3", // Invalid syntax
+		"",        // Empty input
+		"* 2",     // Missing left operand
 	}
 
 	for _, input := range tests {
@@ -108,15 +109,9 @@ func TestIntegration_ParseLatexReturnsExpression(t *testing.T) {
 	}
 
 	// Type assert to expr.Expression
-	expression, ok := result.(expr.Expression)
+	expression, ok := result.(expr.Expr)
 	if !ok {
 		t.Fatalf("ParseLatex did not return an Expression, got %T", result)
-	}
-
-	// Verify we can traverse the expression tree
-	children := expression.Children()
-	if len(children) != 2 {
-		t.Errorf("expected 2 children for AddExpression, got %d", len(children))
 	}
 
 	// Verify we can evaluate the expression
@@ -125,9 +120,9 @@ func TestIntegration_ParseLatexReturnsExpression(t *testing.T) {
 		t.Errorf("evaluation failed")
 	}
 
-	numResult, ok := evalResult.(*expr.NumberValue)
-	if !ok || numResult.Value != 5.0 {
-		t.Errorf("expected result 5.0, got %f", numResult.Value)
+	numResult, ok := evalResult.(*value.RealValue)
+	if !ok || numResult.Float64() != 5.0 {
+		t.Errorf("expected result 5.0, got %f", numResult.Float64())
 	}
 }
 
@@ -140,8 +135,8 @@ func TestIntegration_ComplexNesting(t *testing.T) {
 
 	// ((2 + 3) * (4 - 1)) / (7 - 4) = (5 * 3) / 3 = 15 / 3 = 5
 	expected := 5.0
-	if result.Value != expected {
-		t.Errorf("expected %f, got %f", expected, result.Value)
+	if result.Float64() != expected {
+		t.Errorf("expected %f, got %f", expected, result.Float64())
 	}
 }
 
@@ -161,8 +156,8 @@ func TestIntegration_Whitespace(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseAndEval failed: %v", err)
 			}
-			if result.Value != tt.expected {
-				t.Errorf("expected %f, got %f", tt.expected, result.Value)
+			if result.Float64() != tt.expected {
+				t.Errorf("expected %f, got %f", tt.expected, result.Float64())
 			}
 		})
 	}
@@ -174,11 +169,11 @@ func TestIntegration_Power(t *testing.T) {
 		expected float64
 	}{
 		{"2^3", 8.0},
-		{"2^3^2", 512.0},        // Right associative: 2^(3^2) = 2^9
-		{"(2^3)^2", 64.0},       // Parentheses override: (2^3)^2 = 8^2
-		{"2 + 3^4", 83.0},       // Precedence: 2 + (3^4) = 2 + 81
-		{"2 * 3^2", 18.0},       // 2 * (3^2) = 2 * 9
-		{"4^0.5", 2.0},          // Fractional exponent
+		{"2^3^2", 512.0},  // Right associative: 2^(3^2) = 2^9
+		{"(2^3)^2", 64.0}, // Parentheses override: (2^3)^2 = 8^2
+		{"2 + 3^4", 83.0}, // Precedence: 2 + (3^4) = 2 + 81
+		{"2 * 3^2", 18.0}, // 2 * (3^2) = 2 * 9
+		{"4^0.5", 2.0},    // Fractional exponent
 	}
 
 	for _, tt := range tests {
@@ -187,8 +182,8 @@ func TestIntegration_Power(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Parse/eval error for '%s': %v", tt.input, err)
 			}
-			if result.Value != tt.expected {
-				t.Errorf("For '%s': expected %f, got %f", tt.input, tt.expected, result.Value)
+			if result.Float64() != tt.expected {
+				t.Errorf("For '%s': expected %f, got %f", tt.input, tt.expected, result.Float64())
 			}
 		})
 	}
@@ -216,7 +211,7 @@ func TestIntegration_Sqrt(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Parse/eval error for '%s': %v", tt.input, err)
 			}
-			diff := result.Value - tt.expected
+			diff := result.Float64() - tt.expected
 			if diff < 0 {
 				diff = -diff
 			}
@@ -233,11 +228,11 @@ func TestIntegration_PowerAndSqrt(t *testing.T) {
 		expected  float64
 		tolerance float64
 	}{
-		{"\\sqrt{3^2 + 4^2}", 5.0, 0},        // Pythagorean: sqrt(9+16) = sqrt(25)
-		{"\\sqrt{2^4}", 4.0, 0},              // sqrt(16)
-		{"2^\\sqrt{4}", 4.0, 0},              // 2^2
-		{"(\\sqrt{9})^2", 9.0, 0},            // 3^2
-		{"\\sqrt[3]{2^3}", 2.0, 1e-10},       // cbrt(8)
+		{"\\sqrt{3^2 + 4^2}", 5.0, 0},  // Pythagorean: sqrt(9+16) = sqrt(25)
+		{"\\sqrt{2^4}", 4.0, 0},        // sqrt(16)
+		{"2^\\sqrt{4}", 4.0, 0},        // 2^2
+		{"(\\sqrt{9})^2", 9.0, 0},      // 3^2
+		{"\\sqrt[3]{2^3}", 2.0, 1e-10}, // cbrt(8)
 	}
 
 	for _, tt := range tests {
@@ -246,7 +241,7 @@ func TestIntegration_PowerAndSqrt(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Parse/eval error for '%s': %v", tt.input, err)
 			}
-			diff := result.Value - tt.expected
+			diff := result.Float64() - tt.expected
 			if diff < 0 {
 				diff = -diff
 			}
