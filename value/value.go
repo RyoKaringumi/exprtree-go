@@ -75,3 +75,39 @@ func (b *BoolValue) Equals(other any) bool {
 	}
 	return b.v == otherBool.v
 }
+
+func IsIntegerReal(val Value) bool {
+	realVal, ok := val.(*RealValue)
+	if !ok {
+		return false
+	}
+	return realVal.v == float64(int64(realVal.v))
+}
+
+// 正の実数値かどうかを判定する
+func IsPositiveReal(val Value) bool {
+	realVal, ok := val.(*RealValue)
+	if !ok {
+		return false
+	}
+	return realVal.v > 0
+}
+
+// 0以上の実数値かどうかを判定する
+func IsNonNegativeReal(val Value) bool {
+	realVal, ok := val.(*RealValue)
+	if !ok {
+		return false
+	}
+	return realVal.v >= 0
+}
+
+// 正の整数値を持つ実数値かどうかを判定する(自然数 0を除く)
+func IsPositiveIntegerReal(val Value) bool {
+	return IsIntegerReal(val) && IsPositiveReal(val)
+}
+
+// 0以上の整数値を持つ実数値かどうかを判定する(自然数 0を含む)
+func IsNonNegativeIntegerReal(val Value) bool {
+	return IsIntegerReal(val) && IsNonNegativeReal(val)
+}
