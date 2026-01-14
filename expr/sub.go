@@ -44,3 +44,11 @@ func (s *Sub) Eval() (value.Value, bool) {
 	result := leftReal.Float64() - rightReal.Float64()
 	return value.NewRealValue(result), true
 }
+
+func (s *Sub) Equals(other any) bool {
+	otherSub, ok := other.(*Sub)
+	if !ok {
+		return false
+	}
+	return s.left.Equals(otherSub.left) && s.right.Equals(otherSub.right)
+}

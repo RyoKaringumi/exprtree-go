@@ -45,3 +45,11 @@ func (a *Add) Eval() (value.Value, bool) {
 	result := leftReal.Float64() + rightReal.Float64()
 	return value.NewRealValue(result), true
 }
+
+func (a *Add) Equals(other any) bool {
+	otherAdd, ok := other.(*Add)
+	if !ok {
+		return false
+	}
+	return a.left.Equals(otherAdd.left) && a.right.Equals(otherAdd.right)
+}

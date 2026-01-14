@@ -59,3 +59,11 @@ func (p *Power) Left() Expr {
 func (p *Power) Right() Expr {
 	return p.exponent
 }
+
+func (p *Power) Equals(other any) bool {
+	otherPower, ok := other.(*Power)
+	if !ok {
+		return false
+	}
+	return p.base.Equals(otherPower.base) && p.exponent.Equals(otherPower.exponent)
+}

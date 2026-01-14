@@ -51,3 +51,11 @@ func (n *NthRoot) Eval() (value.Value, bool) {
 	result := math.Pow(leftReal.Float64(), 1.0/rightReal.Float64())
 	return value.NewRealValue(result), true
 }
+
+func (n *NthRoot) Equals(other any) bool {
+	otherNthRoot, ok := other.(*NthRoot)
+	if !ok {
+		return false
+	}
+	return n.radicand.Equals(otherNthRoot.radicand) && n.degree.Equals(otherNthRoot.degree)
+}

@@ -40,3 +40,11 @@ func (d *Div) Eval() (value.Value, bool) {
 	result := leftReal.Float64() / rightReal.Float64()
 	return value.NewRealValue(result), true
 }
+
+func (d *Div) Equals(other any) bool {
+	otherDiv, ok := other.(*Div)
+	if !ok {
+		return false
+	}
+	return d.left.Equals(otherDiv.left) && d.right.Equals(otherDiv.right)
+}

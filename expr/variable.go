@@ -20,3 +20,11 @@ func (v *Variable) Name() string {
 func (v *Variable) Eval() (value.Value, bool) {
 	return nil, false
 }
+
+func (v *Variable) Equals(other any) bool {
+	otherVar, ok := other.(*Variable)
+	if !ok {
+		return false
+	}
+	return v.name == otherVar.name
+}

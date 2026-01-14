@@ -45,3 +45,11 @@ func (m *Mul) Eval() (value.Value, bool) {
 	result := leftReal.Float64() * rightReal.Float64()
 	return value.NewRealValue(result), true
 }
+
+func (m *Mul) Equals(other any) bool {
+	otherMul, ok := other.(*Mul)
+	if !ok {
+		return false
+	}
+	return m.left.Equals(otherMul.left) && m.right.Equals(otherMul.right)
+}
