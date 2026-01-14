@@ -39,3 +39,11 @@ func (a *And) Eval() (value.Value, bool) {
 	result := leftVal.(*value.BoolValue).Bool() && rightVal.(*value.BoolValue).Bool()
 	return value.NewBoolValue(result), true
 }
+
+func (a *And) Equals(other any) bool {
+	otherAnd, ok := other.(*And)
+	if !ok {
+		return false
+	}
+	return a.left.Equals(otherAnd.left) && a.right.Equals(otherAnd.right)
+}

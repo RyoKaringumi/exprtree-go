@@ -48,3 +48,11 @@ func (e *Equal) Eval() (value.Value, bool) {
 		return nil, false
 	}
 }
+
+func (e *Equal) Equals(other any) bool {
+	otherEqual, ok := other.(*Equal)
+	if !ok {
+		return false
+	}
+	return e.left.Equals(otherEqual.left) && e.right.Equals(otherEqual.right)
+}
