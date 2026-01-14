@@ -1,6 +1,9 @@
 package expr
 
-import "exprtree/value"
+import (
+	"exprtree/ast"
+	"exprtree/value"
+)
 
 type Div struct {
 	Binary
@@ -47,4 +50,8 @@ func (d *Div) Equals(other any) bool {
 		return false
 	}
 	return d.left.Equals(otherDiv.left) && d.right.Equals(otherDiv.right)
+}
+
+func (d *Div) Children() []ast.HasChildren {
+	return []ast.HasChildren{d.left, d.right}
 }

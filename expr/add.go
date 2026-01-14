@@ -1,6 +1,9 @@
 package expr
 
-import "exprtree/value"
+import (
+	"exprtree/ast"
+	"exprtree/value"
+)
 
 type Add struct {
 	Binary
@@ -24,6 +27,10 @@ func (a *Add) Left() Expr {
 
 func (a *Add) Right() Expr {
 	return a.right
+}
+
+func (a *Add) Children() []ast.HasChildren {
+	return []ast.HasChildren{a.left, a.right}
 }
 
 func (a *Add) Eval() (value.Value, bool) {

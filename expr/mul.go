@@ -1,6 +1,9 @@
 package expr
 
-import "exprtree/value"
+import (
+	"exprtree/ast"
+	"exprtree/value"
+)
 
 type Mul struct {
 	Binary
@@ -52,4 +55,8 @@ func (m *Mul) Equals(other any) bool {
 		return false
 	}
 	return m.left.Equals(otherMul.left) && m.right.Equals(otherMul.right)
+}
+
+func (m *Mul) Children() []ast.HasChildren {
+	return []ast.HasChildren{m.left, m.right}
 }

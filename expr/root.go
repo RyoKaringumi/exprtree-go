@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"exprtree/ast"
 	"exprtree/value"
 	"math"
 )
@@ -58,4 +59,8 @@ func (n *NthRoot) Equals(other any) bool {
 		return false
 	}
 	return n.radicand.Equals(otherNthRoot.radicand) && n.degree.Equals(otherNthRoot.degree)
+}
+
+func (n *NthRoot) Children() []ast.HasChildren {
+	return []ast.HasChildren{n.radicand, n.degree}
 }

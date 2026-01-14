@@ -1,6 +1,9 @@
 package expr
 
-import "exprtree/value"
+import (
+	"exprtree/ast"
+	"exprtree/value"
+)
 
 type Variable struct {
 	Expr
@@ -27,4 +30,8 @@ func (v *Variable) Equals(other any) bool {
 		return false
 	}
 	return v.name == otherVar.name
+}
+
+func (v *Variable) Children() []ast.HasChildren {
+	return []ast.HasChildren{}
 }

@@ -1,6 +1,9 @@
 package expr
 
-import "exprtree/value"
+import (
+	"exprtree/ast"
+	"exprtree/value"
+)
 
 type Constant struct {
 	Expr
@@ -27,4 +30,8 @@ func (c *Constant) Equals(other any) bool {
 		return false
 	}
 	return c.value.Equals(otherConst.value)
+}
+
+func (c *Constant) Children() []ast.HasChildren {
+	return []ast.HasChildren{}
 }

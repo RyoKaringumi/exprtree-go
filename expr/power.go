@@ -1,6 +1,7 @@
 package expr
 
 import (
+	"exprtree/ast"
 	"exprtree/value"
 	"math"
 )
@@ -66,4 +67,8 @@ func (p *Power) Equals(other any) bool {
 		return false
 	}
 	return p.base.Equals(otherPower.base) && p.exponent.Equals(otherPower.exponent)
+}
+
+func (p *Power) Children() []ast.HasChildren {
+	return []ast.HasChildren{p.base, p.exponent}
 }
