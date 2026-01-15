@@ -19,6 +19,8 @@ func TestIsMonomial(t *testing.T) {
 		{"x^1000", true},
 		{"xxxxxxxxxx", true},
 		{"abcdefghijklmnopqrstuvwxyz", true},
+		{"(abcdefghijklmnopqrstuvwxyz)^2", true},
+		{"(a*b*cdef^2*d*e^3*(x^3)^2)^2*x12yyy", true},
 		{"x + y", false},
 		{"x^{-2}", false},
 		{"\\sqrt{x}", false},
