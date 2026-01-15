@@ -40,7 +40,9 @@ func IsMonomial(e expr.Expr) bool {
 	case *expr.Mul:
 		return IsMonomial(v.Left()) && IsMonomial(v.Right())
 	case *expr.Add:
+		return false
 	case *expr.Sub:
+		return false
 	case *expr.NthRoot:
 		return false
 	case *expr.Power:
@@ -60,5 +62,4 @@ func IsMonomial(e expr.Expr) bool {
 	default:
 		return false
 	}
-	return true
 }
