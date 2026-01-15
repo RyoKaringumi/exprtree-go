@@ -152,6 +152,9 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 		case PLUS, MINUS, MULTIPLY, DIVIDE, CARET, EQUAL:
 			p.nextToken()
 			left = p.parseBinaryOp(left)
+		case NUMBER, VARIABLE, LPAREN, LBRACE, COMMAND:
+			// Implicit multiplication: xy -> x*y, 2x -> 2*x, x(y+z) -> x*(y+z)
+			left = p.parseImplicitMultiply(left)
 		default:
 			return left
 		}
@@ -278,6 +281,23 @@ func (p *Parser) parseCommand() LatexNode {
 	}
 }
 
+// parseImplicitMultiply parses implicit multiplication (e.g., xy, 2x, x(y+z))
+func (p *Parser) parseImplicitMultiply(left LatexNode) LatexNode {
+	// Create a synthetic multiply token
+	operator := Token{Type: MULTIPLY, Literal: "*", Pos: p.peekToken.Pos}
+
+	p.nextToken() // Move to the right operand
+
+	// Parse right side with PRODUCT precedence (left-associative)
+	right := p.parseExpression(PRODUCT)
+
+	return &BinaryOpNode{
+		Left:     left,
+		Operator: operator,
+		Right:    right,
+	}
+}
+
 // parseBinaryOp parses a binary operation
 func (p *Parser) parseBinaryOp(left LatexNode) LatexNode {
 	operator := p.currentToken
@@ -329,6 +349,11 @@ func (p *Parser) currentPrecedence() int {
 func (p *Parser) peekPrecedence() int {
 	if p, ok := precedences[p.peekToken.Type]; ok {
 		return p
+	}
+	// Implicit multiplication has PRODUCT precedence
+	switch p.peekToken.Type {
+	case NUMBER, VARIABLE, LPAREN, LBRACE, COMMAND:
+		return PRODUCT
 	}
 	return LOWEST
 }

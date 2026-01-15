@@ -193,11 +193,8 @@ func (l *Lexer) NextToken() Token {
 			tok.Literal = string(l.ch)
 			tok.Type = VARIABLE
 			l.readChar()
-			// Check if the next character is also a letter (multi-character identifier)
-			// If so, mark as ILLEGAL since we only support single-character variables
-			if isLetter(l.ch) {
-				tok.Type = ILLEGAL
-			}
+			// Multi-character sequences like "xyz" will be handled as implicit multiplication
+			// by the parser, so we just return single-character variables
 			return tok
 		} else {
 			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Pos: l.position}

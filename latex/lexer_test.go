@@ -262,13 +262,29 @@ func TestLexer_VariableExpression(t *testing.T) {
 }
 
 func TestLexer_MultiCharacterIdentifier(t *testing.T) {
-	// Multi-character identifiers should be marked as ILLEGAL
+	// Multi-character sequences are tokenized as separate single-character variables
+	// (implicit multiplication is handled by the parser)
 	input := "abc"
 	lexer := NewLexer(input)
 
-	tok := lexer.NextToken()
-	if tok.Type != ILLEGAL {
-		t.Errorf("expected ILLEGAL token for multi-character identifier, got %v", tok.Type)
+	expectedTokens := []struct {
+		tokenType TokenType
+		literal   string
+	}{
+		{VARIABLE, "a"},
+		{VARIABLE, "b"},
+		{VARIABLE, "c"},
+		{EOF, ""},
+	}
+
+	for i, expected := range expectedTokens {
+		tok := lexer.NextToken()
+		if tok.Type != expected.tokenType {
+			t.Errorf("token[%d] - expected type %v, got %v", i, expected.tokenType, tok.Type)
+		}
+		if tok.Literal != expected.literal {
+			t.Errorf("token[%d] - expected literal %q, got %q", i, expected.literal, tok.Literal)
+		}
 	}
 }
 
