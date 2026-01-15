@@ -16,10 +16,21 @@ func TestIsMonomial(t *testing.T) {
 		{"5", true},
 		{"x^3", true},
 		{"2*x*y*z", true},
+		{"x^1000", true},
+		{"xxxxxxxxxx", true},
+		{"abcdefghijklmnopqrstuvwxyz", true},
 		{"x + y", false},
 		{"x^{-2}", false},
 		{"\\sqrt{x}", false},
 		{"x^2 + 1", false},
+		{"x^0.5", false},
+		{"x^1.5", false},
+		{"x^0", false},
+		{"x*x/2", false},
+		{"x/x", false},
+		{"1/1", false},
+		{"x/1", false},
+		{"x^x", false},
 	}
 
 	for _, tt := range tests {
