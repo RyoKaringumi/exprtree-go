@@ -39,6 +39,8 @@ func (c *Converter) Convert(node LatexNode) (interface{}, error) {
 		return c.convertGroup(n)
 	case *CommandNode:
 		return c.convertCommand(n)
+	case *UnaryMinusNode:
+		return c.convertUnaryMinus(n)
 	default:
 		return nil, fmt.Errorf("unknown node type: %T", node)
 	}
@@ -223,6 +225,23 @@ func (c *Converter) convertSqrt(node *CommandNode) (interface{}, error) {
 
 	// Default to square root (N=2)
 	return expr.NewSqrt(argument), nil
+}
+
+// convertUnaryMinus converts a UnaryMinusNode to a Multiply by -1
+func (c *Converter) convertUnaryMinus(node *UnaryMinusNode) (interface{}, error) {
+	operandResult, err := c.Convert(node.Operand)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert unary minus operand: %w", err)
+	}
+
+	operand, ok := operandResult.(expr.Expr)
+	if !ok {
+		return nil, fmt.Errorf("unary minus operand must be an Expression, got %T", operandResult)
+	}
+
+	// Convert -x to (-1) * x
+	negOne := expr.NewConstant(value.NewRealValue(-1))
+	return expr.NewMul(negOne, operand), nil
 }
 
 // Errors returns the list of conversion errors

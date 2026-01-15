@@ -135,6 +135,10 @@ func (p *Parser) parseExpression(precedence int) LatexNode {
 		left = p.parseVariable()
 	case LPAREN:
 		left = p.parseGroupExpression()
+	case LBRACE:
+		left = p.parseBraceExpression()
+	case MINUS:
+		left = p.parseUnaryMinus()
 	case COMMAND:
 		left = p.parseCommand()
 	default:
@@ -188,6 +192,48 @@ func (p *Parser) parseGroupExpression() LatexNode {
 	return &GroupNode{
 		Inner: inner,
 		Token: token,
+	}
+}
+
+// parseBraceExpression parses a braced expression {...}
+func (p *Parser) parseBraceExpression() LatexNode {
+	token := p.currentToken // Save the '{' token
+
+	p.nextToken() // Move past '{'
+
+	inner := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(RBRACE) {
+		p.errors = append(p.errors, fmt.Sprintf("expected '}' at position %d", p.peekToken.Pos))
+		return nil
+	}
+
+	return &GroupNode{
+		Inner: inner,
+		Token: token,
+	}
+}
+
+// UnaryMinusNode represents a unary minus operation
+type UnaryMinusNode struct {
+	Operand LatexNode
+	Token   Token
+}
+
+func (n *UnaryMinusNode) NodeType() string { return "UnaryMinusNode" }
+
+// parseUnaryMinus parses a unary minus expression
+func (p *Parser) parseUnaryMinus() LatexNode {
+	token := p.currentToken // Save the '-' token
+
+	p.nextToken() // Move past '-'
+
+	// Parse the operand with high precedence so it binds tightly
+	operand := p.parseExpression(POWER)
+
+	return &UnaryMinusNode{
+		Operand: operand,
+		Token:   token,
 	}
 }
 
